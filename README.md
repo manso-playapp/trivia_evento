@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trivia Evento MVP
 
-## Getting Started
+MVP inicial para una trivia corporativa en vivo con tres vistas:
 
-First, run the development server:
+- `/screen`
+- `/operator`
+- `/play/[tableId]`
+
+## Correr el proyecto
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Como funciona este MVP
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Usa mocks locales para 20 mesas y 14 preguntas.
+- El estado del juego vive en `localStorage`.
+- Si abrís varias pestañas, `screen`, `operator` y `play` se sincronizan localmente.
 
-## Learn More
+## Activar Supabase
 
-To learn more about Next.js, take a look at the following resources:
+1. Crear `.env.local` a partir de `.env.example`
+2. Completar:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+NEXT_PUBLIC_GAME_SYNC_PROVIDER=supabase
+NEXT_PUBLIC_GAME_WRITE_MODE=direct
+NEXT_PUBLIC_GAME_AUTOMATION_MODE=hybrid
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+NEXT_PUBLIC_SUPABASE_GAME_ID=trivia-evento-mvp
+SUPABASE_SERVICE_ROLE_KEY=...
+TRIVIA_OPERATOR_API_TOKEN=...
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Ejecutar `supabase/schema.sql` en el SQL Editor del proyecto
+4. Levantar la app con `npm run dev`
 
-## Deploy on Vercel
+Mientras no actives esa variable, la app sigue usando mocks locales.
+Si queres mover writes criticas a backend, cambia `NEXT_PUBLIC_GAME_WRITE_MODE=server`.
+En ese modo, `/operator` requiere iniciar sesion con el token configurado en `TRIVIA_OPERATOR_API_TOKEN`.
+Las mesas tambien validan un codigo simple por equipo:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Mesa 1 => `1001`
+- Mesa 2 => `1002`
+- ...
+- Mesa 20 => `1020`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+En modo `server`, la automatizacion del juego puede correr de tres formas:
+
+- `NEXT_PUBLIC_GAME_AUTOMATION_MODE=client`: una pestaña cliente hace polling de `/api/game/tick`
+- `NEXT_PUBLIC_GAME_AUTOMATION_MODE=hybrid`: fallback mixto, sigue usando polling y queda lista para scheduler
+- `NEXT_PUBLIC_GAME_AUTOMATION_MODE=scheduler`: la UI deja de hacer polling y espera un scheduler real
+
+La ruta de scheduler preparada es `GET /api/cron/game-tick` y espera
+`Authorization: Bearer <CRON_SECRET>`.
+
+Tambien podes configurar delays del backend para el flujo automatico:
+
+- `TRIVIA_REVEAL_DELAY_MS`
+- `TRIVIA_SCORE_DELAY_MS`
+- `CRON_SECRET`
+
+## Scheduler real
+
+La app ya tiene una ruta interna protegida para automatismos de servidor:
+
+- `GET /api/cron/game-tick`
+
+Sirve para Vercel Cron o cualquier scheduler HTTP externo. Para live gameplay,
+no conviene depender de Vercel Cron si necesitas precision de segundos: esta
+base soporta ese camino, pero para rondas de 30 segundos es mejor usar un
+worker o scheduler externo con mayor frecuencia.
+
+## Estructura base
+
+- `app/`: rutas App Router
+- `components/`: UI y vistas del producto
+- `data/`: preguntas, mesas y estado inicial mock
+- `engine/`: reglas puras del dominio
+- `hooks/`: hooks de lectura para las vistas
+- `lib/`: motor del juego, storage y helpers
+- `services/`: acciones, selector de servicio y capa reemplazable para sincronizacion
+- `supabase/`: SQL y notas de integracion realtime
+- `styles/`: espacio reservado para estilos compartidos futuros
+- `types/`: tipos del dominio
+
+## Proxima etapa realtime
+
+1. Mover el Route Handler actual a RPC o Edge Functions con transaccion real.
+2. Validar `revision` del snapshot para evitar carreras.
+3. Mantener `engine/` como reglas de dominio validadas por servidor.
+4. Incorporar autenticacion para operador y mesas.
+5. Reemplazar polling por scheduler/worker de baja latencia.

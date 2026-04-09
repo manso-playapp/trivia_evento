@@ -1,0 +1,381 @@
+import { createInitialGameState } from "@/data/initial-game-state";
+import {
+  getCurrentQuestion,
+  getCurrentRoundNumber,
+  getCurrentSubmittedAnswer,
+  getPowerUp,
+  isTableFrozenForCurrentRound,
+} from "@/engine/game-selectors";
+import type {
+  AnswerOptionId,
+  GameState,
+  PowerUp,
+  ScoreEvent,
+  Table,
+} from "@/types";
+
+const POINTS_PER_CORRECT = 100;
+
+const stampState = (state: GameState): GameState => ({
+  ...state,
+  updatedAt: new Date().toISOString(),
+});
+
+const updateTable = (
+  tables: Table[],
+  tableId: string,
+  updater: (table: Table) => Table
+) =>
+  tables.map((table) => (table.id === tableId ? updater(table) : table));
+
+/**
+ * Paso interno del dominio.
+ * En modo realtime real, el servidor deberia aplicar este freeze antes de abrir
+ * la ronda, para que todas las pantallas reciban exactamente el mismo resultado.
+ */
+export const applyFreezeForRound = (state: GameState): GameState => {
+  const roundNumber = getCurrentRoundNumber(state);
+
+  if (roundNumber === 0) {
+    return state;
+  }
+
+  const tablesWithFreezeApplied = state.tables.map((table) => {
+    const incomingBomb = state.tables.find((sourceTable) => {
+      const bomb = getPowerUp(sourceTable, "bomb");
+
+      return (
+        bomb?.status === "armed" &&
+        bomb.armedForRound === roundNumber &&
+        bomb.targetTableId === table.id
+      );
+    });
+
+    if (!incomingBomb) {
+      return table;
+    }
+
+    return {
+      ...table,
+      frozenRoundNumber: roundNumber,
+      frozenByTableId: incomingBomb.id,
+    };
+  });
+
+  const tablesWithSpentBombs = tablesWithFreezeApplied.map((table) => ({
+    ...table,
+    powerUps: table.powerUps.map((powerUp): PowerUp =>
+      powerUp.type === "bomb" &&
+      powerUp.status === "armed" &&
+      powerUp.armedForRound === roundNumber
+        ? {
+            ...powerUp,
+            status: "spent",
+            armedForRound: null,
+            targetTableId: null,
+            usedAtRound: roundNumber,
+          }
+        : powerUp
+    ),
+  }));
+
+  return stampState({
+    ...state,
+    tables: tablesWithSpentBombs,
+  });
+};
+
+export const revealQuestion = (state: GameState): GameState => {
+  if (
+    state.roundStatus !== "idle" &&
+    state.roundStatus !== "score_updated" &&
+    state.roundStatus !== "game_finished"
+  ) {
+    return state;
+  }
+
+  const nextIndex =
+    state.currentQuestionIndex === null ? 0 : state.currentQuestionIndex + 1;
+
+  if (nextIndex >= state.questions.length) {
+    return stampState({
+      ...state,
+      roundStatus: "game_finished",
+      roundEndsAt: null,
+    });
+  }
+
+  return stampState({
+    ...state,
+    currentQuestionIndex: nextIndex,
+    roundStatus: "question_revealed",
+    roundEndsAt: null,
+  });
+};
+
+export const startRound = (state: GameState): GameState => {
+  const question = getCurrentQuestion(state);
+
+  if (!question || state.roundStatus !== "question_revealed") {
+    return state;
+  }
+
+  const stateWithFreeze = applyFreezeForRound(state);
+
+  return stampState({
+    ...stateWithFreeze,
+    roundStatus: "round_active",
+    roundEndsAt: new Date(
+      Date.now() + question.timeLimitSeconds * 1000
+    ).toISOString(),
+  });
+};
+
+export const submitAnswer = (
+  state: GameState,
+  tableId: string,
+  optionId: AnswerOptionId
+): GameState => {
+  const question = getCurrentQuestion(state);
+
+  if (!question || state.roundStatus !== "round_active") {
+    return state;
+  }
+
+  if (isTableFrozenForCurrentRound(state, tableId)) {
+    return state;
+  }
+
+  const roundNumber = getCurrentRoundNumber(state);
+  const existingAnswerIndex = state.submittedAnswers.findIndex(
+    (answer) =>
+      answer.tableId === tableId &&
+      answer.questionId === question.id &&
+      answer.roundNumber === roundNumber
+  );
+
+  const nextAnswer = {
+    tableId,
+    questionId: question.id,
+    roundNumber,
+    optionId,
+    updatedAt: new Date().toISOString(),
+    locked: false,
+  };
+
+  const submittedAnswers =
+    existingAnswerIndex === -1
+      ? [...state.submittedAnswers, nextAnswer]
+      : state.submittedAnswers.map((answer, index) =>
+          index === existingAnswerIndex ? nextAnswer : answer
+        );
+
+  return stampState({
+    ...state,
+    submittedAnswers,
+  });
+};
+
+export const lockRound = (state: GameState): GameState => {
+  if (state.roundStatus !== "round_active") {
+    return state;
+  }
+
+  const question = getCurrentQuestion(state);
+
+  if (!question) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    roundStatus: "round_locked",
+    roundEndsAt: null,
+    submittedAnswers: state.submittedAnswers.map((answer) =>
+      answer.questionId === question.id ? { ...answer, locked: true } : answer
+    ),
+  });
+};
+
+export const revealCorrectAnswer = (state: GameState): GameState => {
+  if (state.roundStatus !== "round_locked") {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    roundStatus: "answer_revealed",
+  });
+};
+
+export const activateX2 = (state: GameState, tableId: string): GameState => {
+  const roundNumber = getCurrentRoundNumber(state);
+
+  if (
+    roundNumber < 7 ||
+    !["question_revealed", "round_active", "round_locked"].includes(
+      state.roundStatus
+    )
+  ) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    tables: updateTable(state.tables, tableId, (table) => ({
+      ...table,
+      powerUps: table.powerUps.map((powerUp): PowerUp =>
+        powerUp.type === "x2" && powerUp.status === "available"
+          ? {
+              ...powerUp,
+              status: "armed",
+              armedForRound: roundNumber,
+            }
+          : powerUp
+      ),
+    })),
+  });
+};
+
+export const activateBomb = (
+  state: GameState,
+  sourceTableId: string,
+  targetTableId: string
+): GameState => {
+  const roundNumber = getCurrentRoundNumber(state);
+
+  if (
+    roundNumber < 7 ||
+    roundNumber >= state.totalRounds ||
+    sourceTableId === targetTableId ||
+    state.roundStatus === "idle" ||
+    state.roundStatus === "game_finished"
+  ) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    tables: updateTable(state.tables, sourceTableId, (table) => ({
+      ...table,
+      powerUps: table.powerUps.map((powerUp): PowerUp =>
+        powerUp.type === "bomb" && powerUp.status === "available"
+          ? {
+              ...powerUp,
+              status: "armed",
+              armedForRound: roundNumber + 1,
+              targetTableId,
+            }
+          : powerUp
+      ),
+    })),
+  });
+};
+
+export const applyScores = (state: GameState): GameState => {
+  if (state.roundStatus !== "answer_revealed") {
+    return state;
+  }
+
+  const question = getCurrentQuestion(state);
+
+  if (!question) {
+    return state;
+  }
+
+  const roundNumber = getCurrentRoundNumber(state);
+  const scoreEvents: ScoreEvent[] = [];
+
+  const tables = state.tables.map((table) => {
+    const answer = getCurrentSubmittedAnswer(state, table.id);
+    const x2 = getPowerUp(table, "x2");
+    const hasX2 =
+      x2?.status === "armed" && x2.armedForRound === roundNumber;
+    const isFrozen = table.frozenRoundNumber === roundNumber;
+
+    let reason: ScoreEvent["reason"] = "no_answer";
+    let multiplier = 1;
+    let basePoints = 0;
+    let totalPoints = 0;
+
+    if (isFrozen) {
+      reason = "frozen";
+    } else if (!answer) {
+      reason = "no_answer";
+    } else if (answer.optionId === question.correctOptionId) {
+      reason = "correct";
+      basePoints = POINTS_PER_CORRECT;
+      multiplier = hasX2 ? 2 : 1;
+      totalPoints = basePoints * multiplier;
+    } else {
+      reason = "incorrect";
+    }
+
+    scoreEvents.push({
+      id: `${question.id}-${table.id}`,
+      tableId: table.id,
+      questionId: question.id,
+      roundNumber,
+      basePoints,
+      multiplier,
+      totalPoints,
+      reason,
+      createdAt: new Date().toISOString(),
+    });
+
+    return {
+      ...table,
+      score: table.score + totalPoints,
+      frozenRoundNumber:
+        table.frozenRoundNumber === roundNumber ? null : table.frozenRoundNumber,
+      frozenByTableId:
+        table.frozenRoundNumber === roundNumber ? null : table.frozenByTableId,
+      powerUps: table.powerUps.map((powerUp): PowerUp =>
+        powerUp.type === "x2" &&
+        powerUp.status === "armed" &&
+        powerUp.armedForRound === roundNumber
+          ? {
+              ...powerUp,
+              status: "spent",
+              armedForRound: null,
+              usedAtRound: roundNumber,
+            }
+          : powerUp
+      ),
+    };
+  });
+
+  return stampState({
+    ...state,
+    tables,
+    scoreEvents: [...state.scoreEvents, ...scoreEvents],
+    roundStatus:
+      roundNumber >= state.totalRounds ? "game_finished" : "score_updated",
+  });
+};
+
+export const simulateAnswers = (state: GameState): GameState => {
+  const question = getCurrentQuestion(state);
+
+  if (!question || state.roundStatus !== "round_active") {
+    return state;
+  }
+
+  let nextState = state;
+
+  state.tables.forEach((table, index) => {
+    if (
+      isTableFrozenForCurrentRound(nextState, table.id) ||
+      getCurrentSubmittedAnswer(nextState, table.id)
+    ) {
+      return;
+    }
+
+    const optionId = question.options[index % question.options.length].id;
+    nextState = submitAnswer(nextState, table.id, optionId);
+  });
+
+  return nextState;
+};
+
+export const resetGame = (): GameState => createInitialGameState();
