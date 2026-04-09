@@ -14,6 +14,7 @@ import { GameStatusBanner } from "@/components/game-status-banner";
 import { OperatorControls } from "@/components/operator-controls";
 import { QuestionCard } from "@/components/question-card";
 import { SectionCard } from "@/components/section-card";
+import { TableAccessGrid } from "@/components/table-access-grid";
 import { useGameView } from "@/hooks/use-game-view";
 import { useOperatorSession } from "@/hooks/use-operator-session";
 
@@ -123,6 +124,13 @@ export function OperatorView() {
             );
           })}
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title="QR de participacion"
+        description="Material operativo para que cada mesa entre directo a su vista mobile."
+      >
+        <TableAccessGrid tables={state.tables} />
       </SectionCard>
     </AppShell>
   );

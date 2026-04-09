@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Snowflake } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
@@ -22,15 +23,37 @@ export function PlayView({ tableId }: { tableId: string }) {
   const { state, actions, currentQuestion, currentRoundNumber, statusMeta } =
     useGameView();
   const table = state.tables.find((entry) => entry.id === tableId);
-  const tableSession = useTableSession(tableId);
+  const {
+    authenticated,
+    error: tableSessionError,
+    loading: tableSessionLoading,
+    signIn,
+    signOut,
+  } = useTableSession(tableId);
+  const searchParams = useSearchParams();
+  const accessCodeFromQuery = searchParams.get("code");
+  const attemptedAutoAccessCode = useRef<string | null>(null);
 
   useEffect(() => {
-    if (tableSession.authenticated) {
+    if (authenticated) {
       return;
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [tableSession.authenticated]);
+  }, [authenticated]);
+
+  useEffect(() => {
+    if (!accessCodeFromQuery || tableSessionLoading || authenticated) {
+      return;
+    }
+
+    if (attemptedAutoAccessCode.current === accessCodeFromQuery) {
+      return;
+    }
+
+    attemptedAutoAccessCode.current = accessCodeFromQuery;
+    void signIn(accessCodeFromQuery);
+  }, [accessCodeFromQuery, authenticated, signIn, tableSessionLoading]);
 
   if (!table) {
     return (
@@ -49,8 +72,7 @@ export function PlayView({ tableId }: { tableId: string }) {
 
   const answer = getCurrentSubmittedAnswer(state, table.id);
   const isFrozen = isTableFrozenForCurrentRound(state, table.id);
-  const isLocked =
-    state.roundStatus !== "round_active" || !tableSession.authenticated;
+  const isLocked = state.roundStatus !== "round_active" || !authenticated;
 
   return (
     <AppShell className="max-w-3xl space-y-5">
@@ -65,13 +87,14 @@ export function PlayView({ tableId }: { tableId: string }) {
 
       <GameStatusBanner roundStatus={state.roundStatus} />
 
-      {!tableSession.authenticated ? (
+      {!authenticated ? (
         <TableAuthPanel
           tableId={table.id}
           tableName={table.name}
-          loading={tableSession.loading}
-          error={tableSession.error}
-          onSubmit={tableSession.signIn}
+          autoAccessEnabled={Boolean(accessCodeFromQuery)}
+          loading={tableSessionLoading}
+          error={tableSessionError}
+          onSubmit={signIn}
         />
       ) : null}
 
@@ -91,7 +114,7 @@ export function PlayView({ tableId }: { tableId: string }) {
         <div className="broadcast-panel-soft p-4">
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <AlertTriangle className="size-4 text-accent" />
-            {!tableSession.authenticated
+            {!authenticated
               ? "Validá el acceso de la mesa para responder."
               : "La ronda ya no acepta cambios."}
           </p>
@@ -127,10 +150,10 @@ export function PlayView({ tableId }: { tableId: string }) {
               <PowerUpBadge key={`${table.id}-${powerUp.type}`} powerUp={powerUp} />
             ))}
           </div>
-          {tableSession.authenticated ? (
+          {authenticated ? (
             <button
               type="button"
-              onClick={() => void tableSession.signOut()}
+              onClick={() => void signOut()}
               className="mt-4 text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
             >
               Cambiar de mesa en este dispositivo

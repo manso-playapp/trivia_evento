@@ -2,6 +2,7 @@ import "server-only";
 
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
+import { getTableAccessCode } from "@/lib/table-access";
 
 export const TABLE_SESSION_COOKIE = "trivia_table_session";
 
@@ -16,16 +17,6 @@ const safeEqual = (left: string, right: string) => {
   return timingSafeEqual(leftBuffer, rightBuffer);
 };
 
-const extractTableNumber = (tableId: string) => {
-  const match = /^table-(\d+)$/.exec(tableId);
-
-  if (!match) {
-    return null;
-  }
-
-  return Number(match[1]);
-};
-
 /**
  * Codigo de acceso simple por mesa para el MVP.
  *
@@ -38,16 +29,6 @@ const extractTableNumber = (tableId: string) => {
  * - ...
  * - Mesa 20 => 1020
  */
-export const getTableAccessCode = (tableId: string) => {
-  const tableNumber = extractTableNumber(tableId);
-
-  if (!tableNumber) {
-    return null;
-  }
-
-  return String(1000 + tableNumber);
-};
-
 export const isValidTableAccessCode = (tableId: string, accessCode: string) => {
   const expectedCode = getTableAccessCode(tableId);
 

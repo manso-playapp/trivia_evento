@@ -5,6 +5,7 @@
  * En Next.js 16, cualquier variable sin ese prefijo no llega al bundle cliente.
  */
 export const runtimeConfig = {
+  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
   gameSyncProvider: process.env.NEXT_PUBLIC_GAME_SYNC_PROVIDER ?? "mock",
   gameWriteMode: process.env.NEXT_PUBLIC_GAME_WRITE_MODE ?? "direct",
   gameAutomationMode:

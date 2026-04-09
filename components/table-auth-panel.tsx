@@ -8,6 +8,7 @@ import { SectionCard } from "@/components/section-card";
 type TableAuthPanelProps = {
   tableName: string;
   tableId: string;
+  autoAccessEnabled?: boolean;
   loading: boolean;
   error: string | null;
   onSubmit: (accessCode: string) => Promise<boolean>;
@@ -16,6 +17,7 @@ type TableAuthPanelProps = {
 export function TableAuthPanel({
   tableName,
   tableId,
+  autoAccessEnabled = false,
   loading,
   error,
   onSubmit,
@@ -34,7 +36,9 @@ export function TableAuthPanel({
             Acceso por mesa
           </p>
           <p className="mt-2 text-muted-foreground">
-            Ingresá el codigo asignado a <strong>{tableName}</strong>.
+            {autoAccessEnabled
+              ? `Estamos intentando validar automaticamente el acceso de ${tableName}.`
+              : `Ingresá el codigo asignado a ${tableName}.`}
           </p>
           <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Identificador: {tableId}
