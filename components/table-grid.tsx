@@ -1,4 +1,5 @@
 import {
+  getActiveTables,
   getCurrentSubmittedAnswer,
   getRanking,
   isTableFrozenForCurrentRound,
@@ -19,7 +20,7 @@ export function TableGrid({ state, showPowerUps }: TableGridProps) {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {[...state.tables]
+      {[...getActiveTables(state)]
         .sort((left, right) =>
           left.id.localeCompare(right.id, undefined, { numeric: true })
         )

@@ -4,6 +4,7 @@ export type GameEventType =
   | "question_revealed"
   | "round_started"
   | "answer_submitted"
+  | "table_activity_updated"
   | "round_locked"
   | "correct_answer_revealed"
   | "scores_applied"

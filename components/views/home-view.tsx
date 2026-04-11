@@ -32,7 +32,7 @@ const routeCards = [
 ];
 
 export function HomeView() {
-  const { state, currentRoundNumber, statusMeta } = useGameView();
+  const { activeTables, state, currentRoundNumber, statusMeta } = useGameView();
   const lastUpdatedLabel = state.updatedAt
     ? state.updatedAt.replace("T", " ").slice(0, 19)
     : "Sin actividad";
@@ -83,7 +83,8 @@ export function HomeView() {
         >
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>Preguntas: {state.questions.length}</p>
-            <p>Mesas: {state.tables.length}</p>
+            <p>Mesas activas: {activeTables.length}</p>
+            <p>Capacidad total: {state.tables.length}</p>
             <p>Estado actual: {statusMeta.label}</p>
             <p>Ultima actualizacion: {lastUpdatedLabel}</p>
           </div>

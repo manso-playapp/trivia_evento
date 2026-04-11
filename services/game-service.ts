@@ -25,6 +25,9 @@ export interface GameService {
     optionId: AnswerOptionId,
     actorId?: string
   ): void;
+  setTableName(tableId: string, name: string, actorId?: string): void;
+  setTableActive(tableId: string, active: boolean, actorId?: string): void;
+  setActiveTableCount(count: number, actorId?: string): void;
   lockRound(actorId?: string): void;
   revealCorrectAnswer(actorId?: string): void;
   applyScores(actorId?: string): void;

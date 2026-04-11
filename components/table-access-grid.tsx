@@ -51,6 +51,9 @@ export function TableAccessGrid({ tables }: TableAccessGridProps) {
           Cada QR abre la URL de participacion de una mesa y lleva el codigo de
           acceso en el link para entrar directo al juego.
         </p>
+        <p className="mt-3 text-xs uppercase tracking-[0.18em] text-foreground/80">
+          {tables.length} mesas activas listas para ingresar
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">

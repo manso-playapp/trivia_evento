@@ -12,8 +12,14 @@ import { TimerDisplay } from "@/components/timer-display";
 import { useGameView } from "@/hooks/use-game-view";
 
 export function ScreenView() {
-  const { state, currentQuestion, currentRoundNumber, ranking, statusMeta } =
-    useGameView();
+  const {
+    activeTables,
+    state,
+    currentQuestion,
+    currentRoundNumber,
+    ranking,
+    statusMeta,
+  } = useGameView();
   const showPowerUps = currentRoundNumber >= 7;
 
   return (
@@ -49,7 +55,7 @@ export function ScreenView() {
 
       <SectionCard
         title="Mesas del evento"
-        description="Estado de las 20 mesas con score, respuesta y comodines."
+        description={`Estado de las ${activeTables.length} mesas activas con score, respuesta y comodines.`}
       >
         <TableGrid state={state} showPowerUps={showPowerUps} />
       </SectionCard>

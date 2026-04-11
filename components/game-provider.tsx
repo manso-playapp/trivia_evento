@@ -20,6 +20,9 @@ type GameActions = {
   revealQuestion: () => void;
   startRound: () => void;
   submitAnswer: (tableId: string, optionId: AnswerOptionId) => void;
+  setTableName: (tableId: string, name: string) => void;
+  setTableActive: (tableId: string, active: boolean) => void;
+  setActiveTableCount: (count: number) => void;
   lockRound: () => void;
   revealCorrectAnswer: () => void;
   applyScores: () => void;
@@ -126,6 +129,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     startRound: () => gameService.startRound(),
     submitAnswer: (tableId, optionId) =>
       gameService.submitAnswer(tableId, optionId, tableId),
+    setTableName: (tableId, name) => gameService.setTableName(tableId, name),
+    setTableActive: (tableId, active) =>
+      gameService.setTableActive(tableId, active),
+    setActiveTableCount: (count) => gameService.setActiveTableCount(count),
     lockRound: () => gameService.lockRound(),
     revealCorrectAnswer: () => gameService.revealCorrectAnswer(),
     applyScores: () => gameService.applyScores(),

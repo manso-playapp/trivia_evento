@@ -8,6 +8,9 @@ export type GameCommand =
   | { type: "reveal_question" }
   | { type: "start_round" }
   | { type: "submit_answer"; tableId: string; optionId: AnswerOptionId }
+  | { type: "set_table_name"; tableId: string; name: string }
+  | { type: "set_table_active"; tableId: string; active: boolean }
+  | { type: "set_active_table_count"; count: number }
   | { type: "lock_round" }
   | { type: "reveal_correct_answer" }
   | { type: "apply_scores" }

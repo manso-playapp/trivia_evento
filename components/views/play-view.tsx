@@ -7,6 +7,7 @@ import { AlertTriangle, Snowflake } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import {
   getCurrentSubmittedAnswer,
+  isTableActive,
   isTableFrozenForCurrentRound,
 } from "@/engine/game-selectors";
 import { EventHeader } from "@/components/event-header";
@@ -64,6 +65,21 @@ export function PlayView({ tableId }: { tableId: string }) {
         >
           <p className="text-sm text-muted-foreground">
             La vista mobile necesita un `tableId` existente.
+          </p>
+        </SectionCard>
+      </AppShell>
+    );
+  }
+
+  if (!isTableActive(state, table.id)) {
+    return (
+      <AppShell>
+        <SectionCard
+          title="Mesa no habilitada"
+          description="Esta mesa existe, pero no esta dada de alta para el evento actual."
+        >
+          <p className="text-sm text-muted-foreground">
+            Pedile al operador que la active desde el panel antes de participar.
           </p>
         </SectionCard>
       </AppShell>

@@ -9,6 +9,9 @@ import {
   resetGame,
   revealCorrectAnswer,
   revealQuestion,
+  setActiveTableCount,
+  setTableActive,
+  setTableName,
   simulateAnswers,
   startRound,
   submitAnswer,
@@ -143,6 +146,44 @@ export const mockGameService: GameService = {
         tableId,
         optionId,
         roundNumber: getCurrentRoundNumber(readStoredGameState()),
+      },
+    });
+  },
+
+  setTableName(tableId, name, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => setTableName(state, tableId, name),
+      type: "table_activity_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        tableId,
+        name,
+      },
+    });
+  },
+
+  setTableActive(tableId, active, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => setTableActive(state, tableId, active),
+      type: "table_activity_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        tableId,
+        active,
+      },
+    });
+  },
+
+  setActiveTableCount(count, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => setActiveTableCount(state, count),
+      type: "table_activity_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        activeTableCount: count,
       },
     });
   },

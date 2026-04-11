@@ -1,6 +1,6 @@
 import type { PowerUp, Table } from "@/types";
 
-const createPowerUps = (): PowerUp[] => [
+export const createDefaultPowerUps = (): PowerUp[] => [
   {
     type: "x2",
     label: "X2",
@@ -24,9 +24,10 @@ const createPowerUps = (): PowerUp[] => [
 export const mockTables: Table[] = Array.from({ length: 20 }, (_, index) => ({
   id: `table-${index + 1}`,
   name: `Mesa ${index + 1}`,
+  active: true,
   score: 0,
   connected: true,
-  powerUps: createPowerUps(),
+  powerUps: createDefaultPowerUps(),
   frozenRoundNumber: null,
   frozenByTableId: null,
 }));

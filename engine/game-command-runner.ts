@@ -7,6 +7,9 @@ import {
   resetGame,
   revealCorrectAnswer,
   revealQuestion,
+  setActiveTableCount,
+  setTableActive,
+  setTableName,
   simulateAnswers,
   startRound,
   submitAnswer,
@@ -76,6 +79,50 @@ export const executeGameCommand = (
           tableId: command.tableId,
           optionId: command.optionId,
           roundNumber: getCurrentRoundNumber(state),
+        },
+      };
+    }
+
+    case "set_table_name": {
+      const nextState = setTableName(state, command.tableId, command.name);
+      const persistedName =
+        nextState.tables.find((table) => table.id === command.tableId)?.name ??
+        command.name;
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "table_activity_updated",
+        payload: {
+          tableId: command.tableId,
+          name: persistedName,
+        },
+      };
+    }
+
+    case "set_table_active": {
+      const nextState = setTableActive(state, command.tableId, command.active);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "table_activity_updated",
+        payload: {
+          tableId: command.tableId,
+          active: command.active,
+        },
+      };
+    }
+
+    case "set_active_table_count": {
+      const nextState = setActiveTableCount(state, command.count);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "table_activity_updated",
+        payload: {
+          activeTableCount: nextState.tables.filter((table) => table.active).length,
         },
       };
     }

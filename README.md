@@ -86,6 +86,7 @@ worker o scheduler externo con mayor frecuencia.
 - `app/`: rutas App Router
 - `components/`: UI y vistas del producto
 - `data/`: preguntas, mesas y estado inicial mock
+- `docs/`: changelog y contexto operativo para handoff de hilos
 - `engine/`: reglas puras del dominio
 - `hooks/`: hooks de lectura para las vistas
 - `lib/`: motor del juego, storage y helpers
@@ -93,6 +94,28 @@ worker o scheduler externo con mayor frecuencia.
 - `supabase/`: SQL y notas de integracion realtime
 - `styles/`: espacio reservado para estilos compartidos futuros
 - `types/`: tipos del dominio
+
+## Control de version y contexto
+
+- Version funcional: `docs/CHANGELOG.md`
+- Contexto comprimido para handoff: `docs/PROJECT_CONTEXT.md`
+- Snapshot automatico para nuevo hilo: `docs/HANDOFF_CONTEXT.md`
+- Historial de snapshots: `docs/CONTEXT_ARCHIVE.md`
+- Visualizacion en admin: `/operator` -> bloque `Version y contexto`
+- Endpoint de soporte: `GET /api/meta/context`
+- Regeneracion manual de checkpoint: `POST /api/meta/context/checkpoint`
+
+## Automatizacion del contexto
+
+1. Instalar hooks una vez:
+```bash
+npm run hooks:install
+```
+2. El hook `pre-commit` ejecuta automaticamente:
+```bash
+npm run context:checkpoint
+```
+3. Eso mantiene actualizado el handoff para abrir hilo nuevo sin perder contexto.
 
 ## Proxima etapa realtime
 

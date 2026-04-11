@@ -37,6 +37,38 @@ export const parseGameCommand = (input: unknown): GameCommand | null => {
 
       return null;
 
+    case "set_table_name":
+      if (typeof input.tableId === "string" && typeof input.name === "string") {
+        return {
+          type: "set_table_name",
+          tableId: input.tableId,
+          name: input.name,
+        };
+      }
+
+      return null;
+
+    case "set_table_active":
+      if (typeof input.tableId === "string" && typeof input.active === "boolean") {
+        return {
+          type: "set_table_active",
+          tableId: input.tableId,
+          active: input.active,
+        };
+      }
+
+      return null;
+
+    case "set_active_table_count":
+      if (typeof input.count === "number" && Number.isInteger(input.count)) {
+        return {
+          type: "set_active_table_count",
+          count: input.count,
+        };
+      }
+
+      return null;
+
     case "activate_x2":
       if (typeof input.tableId === "string") {
         return { type: "activate_x2", tableId: input.tableId };

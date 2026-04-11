@@ -6,6 +6,7 @@ import type { PowerUp } from "@/types/power-up";
 export type Table = {
   id: string;
   name: string;
+  active: boolean;
   score: number;
   connected: boolean;
   powerUps: PowerUp[];

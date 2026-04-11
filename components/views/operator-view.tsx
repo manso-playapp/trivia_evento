@@ -15,15 +15,23 @@ import { OperatorControls } from "@/components/operator-controls";
 import { QuestionCard } from "@/components/question-card";
 import { SectionCard } from "@/components/section-card";
 import { TableAccessGrid } from "@/components/table-access-grid";
+import { TableRosterManager } from "@/components/table-roster-manager";
+import { VersionContextPanel } from "@/components/version-context-panel";
 import { useGameView } from "@/hooks/use-game-view";
 import { useOperatorSession } from "@/hooks/use-operator-session";
 
 export function OperatorView() {
-  const { state, actions, currentQuestion, currentRoundNumber, statusMeta } =
-    useGameView();
+  const {
+    activeTables,
+    state,
+    actions,
+    currentQuestion,
+    currentRoundNumber,
+    statusMeta,
+  } = useGameView();
   const operatorSession = useOperatorSession();
 
-  const answeredTables = state.tables.filter((table) =>
+  const answeredTables = activeTables.filter((table) =>
     Boolean(getCurrentSubmittedAnswer(state, table.id))
   );
 
@@ -93,10 +101,10 @@ export function OperatorView() {
 
       <SectionCard
         title="Respuestas por mesa"
-        description={`${answeredTables.length}/${state.tables.length} mesas respondieron la ronda actual.`}
+        description={`${answeredTables.length}/${activeTables.length} mesas activas respondieron la ronda actual.`}
       >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {state.tables.map((table) => {
+          {activeTables.map((table) => {
             const answer = getCurrentSubmittedAnswer(state, table.id);
             const frozen = isTableFrozenForCurrentRound(state, table.id);
 
@@ -127,10 +135,33 @@ export function OperatorView() {
       </SectionCard>
 
       <SectionCard
+        title="Alta y baja de mesas"
+        description="Defini cuantas mesas participan y cuales quedan fuera del evento actual."
+      >
+        <TableRosterManager
+          tables={state.tables}
+          disabled={
+            (operatorSession.enabled && !operatorSession.authenticated) ||
+            !["idle", "game_finished"].includes(state.roundStatus)
+          }
+          onSetTableName={actions.setTableName}
+          onSetTableActive={actions.setTableActive}
+          onSetActiveTableCount={actions.setActiveTableCount}
+        />
+      </SectionCard>
+
+      <SectionCard
         title="QR de participacion"
         description="Material operativo para que cada mesa entre directo a su vista mobile."
       >
-        <TableAccessGrid tables={state.tables} />
+        <TableAccessGrid tables={activeTables} />
+      </SectionCard>
+
+      <SectionCard
+        title="Version y contexto"
+        description="Control de release/contexto para continuidad cuando se reinicia el hilo de trabajo."
+      >
+        <VersionContextPanel />
       </SectionCard>
     </AppShell>
   );

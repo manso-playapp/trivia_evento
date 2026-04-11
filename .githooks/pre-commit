@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -e
+
+npm run context:checkpoint >/dev/null
+git add docs/HANDOFF_CONTEXT.md docs/CONTEXT_ARCHIVE.md docs/PROJECT_CONTEXT.md

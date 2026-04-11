@@ -1,5 +1,7 @@
 import { createInitialGameState } from "@/data/initial-game-state";
+import { createDefaultPowerUps } from "@/data/mock-tables";
 import {
+  getActiveTables,
   getCurrentQuestion,
   getCurrentRoundNumber,
   getCurrentSubmittedAnswer,
@@ -28,6 +30,104 @@ const updateTable = (
 ) =>
   tables.map((table) => (table.id === tableId ? updater(table) : table));
 
+const canChangeRoster = (state: GameState) =>
+  state.roundStatus === "idle" || state.roundStatus === "game_finished";
+
+const normalizeTableName = (name: string) =>
+  name.trim().replace(/\s+/g, " ").slice(0, 40);
+
+const resetTableSetupState = (table: Table, active: boolean): Table => ({
+  ...table,
+  active,
+  score: 0,
+  connected: active,
+  powerUps: createDefaultPowerUps(),
+  frozenRoundNumber: null,
+  frozenByTableId: null,
+});
+
+export const setTableName = (
+  state: GameState,
+  tableId: string,
+  name: string
+): GameState => {
+  if (!canChangeRoster(state)) {
+    return state;
+  }
+
+  const normalizedName = normalizeTableName(name);
+
+  if (!normalizedName) {
+    return state;
+  }
+
+  const table = state.tables.find((entry) => entry.id === tableId);
+
+  if (!table || table.name === normalizedName) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    tables: updateTable(state.tables, tableId, (currentTable) => ({
+      ...currentTable,
+      name: normalizedName,
+    })),
+  });
+};
+
+export const setTableActive = (
+  state: GameState,
+  tableId: string,
+  active: boolean
+): GameState => {
+  if (!canChangeRoster(state)) {
+    return state;
+  }
+
+  const table = state.tables.find((entry) => entry.id === tableId);
+
+  if (!table || table.active === active) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    tables: updateTable(state.tables, tableId, (currentTable) =>
+      resetTableSetupState(currentTable, active)
+    ),
+    submittedAnswers: state.submittedAnswers.filter(
+      (answer) => answer.tableId !== tableId
+    ),
+    scoreEvents: state.scoreEvents.filter((event) => event.tableId !== tableId),
+  });
+};
+
+export const setActiveTableCount = (state: GameState, count: number): GameState => {
+  if (!canChangeRoster(state)) {
+    return state;
+  }
+
+  const normalizedCount = Math.max(0, Math.min(state.tables.length, count));
+  const tables = state.tables.map((table, index) =>
+    resetTableSetupState(table, index < normalizedCount)
+  );
+  const activeTableIds = new Set(
+    tables.filter((table) => table.active).map((table) => table.id)
+  );
+
+  return stampState({
+    ...state,
+    tables,
+    submittedAnswers: state.submittedAnswers.filter((answer) =>
+      activeTableIds.has(answer.tableId)
+    ),
+    scoreEvents: state.scoreEvents.filter((event) =>
+      activeTableIds.has(event.tableId)
+    ),
+  });
+};
+
 /**
  * Paso interno del dominio.
  * En modo realtime real, el servidor deberia aplicar este freeze antes de abrir
@@ -41,7 +141,19 @@ export const applyFreezeForRound = (state: GameState): GameState => {
   }
 
   const tablesWithFreezeApplied = state.tables.map((table) => {
+    if (!table.active) {
+      return {
+        ...table,
+        frozenRoundNumber: null,
+        frozenByTableId: null,
+      };
+    }
+
     const incomingBomb = state.tables.find((sourceTable) => {
+      if (!sourceTable.active) {
+        return false;
+      }
+
       const bomb = getPowerUp(sourceTable, "bomb");
 
       return (
@@ -116,7 +228,11 @@ export const revealQuestion = (state: GameState): GameState => {
 export const startRound = (state: GameState): GameState => {
   const question = getCurrentQuestion(state);
 
-  if (!question || state.roundStatus !== "question_revealed") {
+  if (
+    !question ||
+    state.roundStatus !== "question_revealed" ||
+    getActiveTables(state).length === 0
+  ) {
     return state;
   }
 
@@ -139,6 +255,12 @@ export const submitAnswer = (
   const question = getCurrentQuestion(state);
 
   if (!question || state.roundStatus !== "round_active") {
+    return state;
+  }
+
+  const table = state.tables.find((entry) => entry.id === tableId);
+
+  if (!table?.active) {
     return state;
   }
 
@@ -220,6 +342,10 @@ export const activateX2 = (state: GameState, tableId: string): GameState => {
     return state;
   }
 
+  if (!getActiveTables(state).some((table) => table.id === tableId)) {
+    return state;
+  }
+
   return stampState({
     ...state,
     tables: updateTable(state.tables, tableId, (table) => ({
@@ -251,6 +377,12 @@ export const activateBomb = (
     state.roundStatus === "idle" ||
     state.roundStatus === "game_finished"
   ) {
+    return state;
+  }
+
+  const activeTableIds = new Set(getActiveTables(state).map((table) => table.id));
+
+  if (!activeTableIds.has(sourceTableId) || !activeTableIds.has(targetTableId)) {
     return state;
   }
 
@@ -287,6 +419,10 @@ export const applyScores = (state: GameState): GameState => {
   const scoreEvents: ScoreEvent[] = [];
 
   const tables = state.tables.map((table) => {
+    if (!table.active) {
+      return table;
+    }
+
     const answer = getCurrentSubmittedAnswer(state, table.id);
     const x2 = getPowerUp(table, "x2");
     const hasX2 =
@@ -363,7 +499,7 @@ export const simulateAnswers = (state: GameState): GameState => {
 
   let nextState = state;
 
-  state.tables.forEach((table, index) => {
+  getActiveTables(state).forEach((table, index) => {
     if (
       isTableFrozenForCurrentRound(nextState, table.id) ||
       getCurrentSubmittedAnswer(nextState, table.id)

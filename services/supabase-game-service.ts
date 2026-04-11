@@ -11,6 +11,9 @@ import {
   resetGame,
   revealCorrectAnswer,
   revealQuestion,
+  setActiveTableCount,
+  setTableActive,
+  setTableName,
   simulateAnswers,
   startRound,
   submitAnswer,
@@ -387,6 +390,74 @@ export const createSupabaseGameService = (): GameService => ({
         tableId,
         optionId,
         roundNumber: getCurrentRoundNumber(currentState),
+      }),
+    });
+  },
+
+  setTableName(tableId, name, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "set_table_name", tableId, name },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => setTableName(state, tableId, name),
+      type: "table_activity_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        tableId,
+        name,
+      },
+    });
+  },
+
+  setTableActive(tableId, active, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "set_table_active", tableId, active },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => setTableActive(state, tableId, active),
+      type: "table_activity_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        tableId,
+        active,
+      },
+    });
+  },
+
+  setActiveTableCount(count, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "set_active_table_count", count },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => setActiveTableCount(state, count),
+      type: "table_activity_updated",
+      actorRole: "operator",
+      actorId,
+      payload: (_currentState, nextState) => ({
+        activeTableCount: nextState.tables.filter((table) => table.active).length,
       }),
     });
   },

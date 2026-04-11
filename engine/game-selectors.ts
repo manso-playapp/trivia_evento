@@ -1,5 +1,14 @@
 import type { GameState, PowerUp, Table } from "@/types";
 
+export const getActiveTables = (state: GameState) =>
+  state.tables.filter((table) => table.active);
+
+export const getInactiveTables = (state: GameState) =>
+  state.tables.filter((table) => !table.active);
+
+export const isTableActive = (state: GameState, tableId: string) =>
+  state.tables.some((table) => table.id === tableId && table.active);
+
 export const getCurrentQuestion = (state: GameState) =>
   state.currentQuestionIndex === null
     ? null
@@ -9,7 +18,7 @@ export const getCurrentRoundNumber = (state: GameState) =>
   state.currentQuestionIndex === null ? 0 : state.currentQuestionIndex + 1;
 
 export const getRanking = (state: GameState) =>
-  [...state.tables].sort((left, right) => right.score - left.score);
+  [...getActiveTables(state)].sort((left, right) => right.score - left.score);
 
 export const getPowerUp = (table: Table, type: PowerUp["type"]) =>
   table.powerUps.find((powerUp) => powerUp.type === type);
@@ -38,7 +47,7 @@ export const isTableFrozenForCurrentRound = (
 ) => {
   const table = state.tables.find((entry) => entry.id === tableId);
 
-  if (!table) {
+  if (!table || !table.active) {
     return false;
   }
 
