@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-04-11T15:35:17.579Z
+- generated_at: 2026-04-11T20:14:31.344Z
 - release_version: 0.6.0
 - release_date: 2026-04-11
 - source_changelog: docs/CHANGELOG.md
@@ -20,39 +20,19 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- A  .githooks/pre-commit
-- M  README.md
-- A  app/api/meta/context/checkpoint/route.ts
-- A  app/api/meta/context/route.ts
-- M  components/game-provider.tsx
+- M  components/answer-options-board.tsx
+- M  components/question-card.tsx
+- M  components/ranking-board.tsx
 - M  components/table-access-grid.tsx
+- M  components/table-card.tsx
 - M  components/table-grid.tsx
-- A  components/table-roster-manager.tsx
-- A  components/version-context-panel.tsx
-- M  components/views/home-view.tsx
-- M  components/views/operator-view.tsx
-- M  components/views/play-view.tsx
+- M  components/timer-display.tsx
 - M  components/views/screen-view.tsx
-- M  data/mock-tables.ts
-- A  docs/CHANGELOG.md
-- A  docs/CONTEXT_ARCHIVE.md
-- A  docs/HANDOFF_CONTEXT.md
-- A  docs/PROJECT_CONTEXT.md
-- M  engine/game-command-runner.ts
-- M  engine/game-domain.ts
-- M  engine/game-selectors.ts
-- M  hooks/use-game-view.ts
-- M  lib/game-command-validator.ts
-- A  lib/server/project-context-docs.ts
-- M  package.json
-- A  scripts/context-checkpoint.mjs
-- A  scripts/install-hooks.sh
-- M  services/game-service.ts
-- M  services/mock-game-service.ts
-- M  services/supabase-game-service.ts
+- ?? .history/
 
 ## Recent Commits
 
+- 03e3308 feat: table roster naming and automatic context checkpoints
 - d841b46 feat: add table qr access
 - 0fae8bd feat: launch trivia evento MVP
 - 5902b8e feat: initial commit

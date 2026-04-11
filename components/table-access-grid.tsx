@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Copy, ExternalLink, KeyRound } from "lucide-react";
 
@@ -19,8 +19,16 @@ const copyToClipboard = async (value: string) => {
 };
 
 export function TableAccessGrid({ tables }: TableAccessGridProps) {
-  const origin =
-    typeof window !== "undefined" ? window.location.origin : undefined;
+  /**
+   * Evita mismatch de hidratacion:
+   * - en SSR/hydration usa snapshot vacio (URL relativa)
+   * - en cliente activo toma `window.location.origin`
+   */
+  const origin = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => ""
+  );
 
   const tableAccessEntries = useMemo(
     () =>
@@ -29,7 +37,7 @@ export function TableAccessGrid({ tables }: TableAccessGridProps) {
         const joinUrl = getTableJoinUrl({
           tableId: table.id,
           accessCode,
-          origin,
+          origin: origin || undefined,
         });
 
         return {

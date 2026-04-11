@@ -57,3 +57,31 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - Se agrego alta y baja de mesas (activas/inactivas) desde `/operator`.
 - Se agrego edicion de nombre de mesa desde `/operator`.
 ```
+
+
+<!-- context-entry -->
+
+## Snapshot 2026-04-11T20:14:31.344Z
+
+- release: 0.6.0
+- changed_files: 10
+- head_commit: 03e3308 feat: table roster naming and automatic context checkpoints
+
+```md
+# Handoff Context
+
+- generated_at: 2026-04-11T20:14:31.344Z
+- release_version: 0.6.0
+- release_date: 2026-04-11
+- source_changelog: docs/CHANGELOG.md
+- source_context: docs/PROJECT_CONTEXT.md
+
+## Compressed Context
+
+Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El estado del juego esta modelado como snapshot unico con `revision` y `lastEvent`. Hoy puede correr en modo mock local o en modo Supabase con writes por backend (`server`).
+
+## Latest Functional Changes
+
+- Se agrego alta y baja de mesas (activas/inactivas) desde `/operator`.
+- Se agrego edicion de nombre de mesa desde `/operator`.
+```

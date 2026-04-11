@@ -9,6 +9,7 @@ type TimerDisplayProps = {
   roundEndsAt: string | null;
   roundDurationSeconds: number;
   roundStatus: RoundStatus;
+  variant?: "panel" | "header";
 };
 
 const getRemainingSeconds = (
@@ -34,6 +35,7 @@ export function TimerDisplay({
   roundEndsAt,
   roundDurationSeconds,
   roundStatus,
+  variant = "panel",
 }: TimerDisplayProps) {
   const [seconds, setSeconds] = useState(() =>
     getRemainingSeconds(roundEndsAt, roundDurationSeconds, roundStatus)
@@ -65,6 +67,34 @@ export function TimerDisplay({
       : seconds <= 10 && roundStatus === "round_active"
         ? "text-warning"
         : "text-foreground";
+
+  if (variant === "header") {
+    return (
+      <div className="broadcast-panel relative overflow-hidden px-4 py-3 sm:px-5">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/8" />
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="broadcast-label mb-1 flex items-center gap-2">
+              <Timer className="size-3.5 text-accent" />
+              Countdown
+            </p>
+            <p className="text-xs text-muted-foreground">Tiempo de ronda</p>
+          </div>
+          <div
+            className={`text-6xl font-semibold leading-none tracking-[-0.05em] ${timerToneClassName}`}
+          >
+            {seconds}
+          </div>
+        </div>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-background/70">
+          <div
+            className="h-full rounded-full bg-accent transition-[width] duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="broadcast-panel relative overflow-hidden px-5 py-5 text-center sm:px-6 sm:py-6">

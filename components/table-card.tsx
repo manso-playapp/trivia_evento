@@ -9,6 +9,7 @@ type TableCardProps = {
   isFrozen: boolean;
   rankingPosition?: number;
   showPowerUps: boolean;
+  compact?: boolean;
 };
 
 export function TableCard({
@@ -17,7 +18,33 @@ export function TableCard({
   isFrozen,
   rankingPosition,
   showPowerUps,
+  compact = false,
 }: TableCardProps) {
+  if (compact) {
+    return (
+      <div
+        className={`rounded-xl border p-2 ${
+          table.active
+            ? "border-border/70 bg-surface/95"
+            : "border-border/40 bg-background/35 opacity-70"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-xs font-semibold text-foreground">{table.name}</p>
+          <p className="text-base font-semibold leading-none text-foreground">{table.score}</p>
+        </div>
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <span className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            {table.id}
+          </span>
+          <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            {table.active ? (hasAnswered ? "Respondio" : "Pendiente") : "Inactiva"}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   const rankClassName =
     rankingPosition === 1
       ? "border-accent/35"
