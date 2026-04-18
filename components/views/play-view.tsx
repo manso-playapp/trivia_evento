@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertTriangle, Snowflake } from "lucide-react";
+import { CheckCircle2, Clock3, Crown, DoorOpen, Snowflake, XCircle } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import {
@@ -10,19 +10,16 @@ import {
   isTableActive,
   isTableFrozenForCurrentRound,
 } from "@/engine/game-selectors";
-import { EventHeader } from "@/components/event-header";
-import { GameStatusBanner } from "@/components/game-status-banner";
+import { MobileRoundTimer } from "@/components/mobile-round-timer";
 import { MobileAnswerPad } from "@/components/mobile-answer-pad";
-import { PowerUpBadge } from "@/components/power-up-badge";
-import { QuestionCard } from "@/components/question-card";
 import { SectionCard } from "@/components/section-card";
+import { SuccessConfetti } from "@/components/success-confetti";
 import { useGameView } from "@/hooks/use-game-view";
 import { useTableSession } from "@/hooks/use-table-session";
 import { TableAuthPanel } from "@/components/table-auth-panel";
 
 export function PlayView({ tableId }: { tableId: string }) {
-  const { state, actions, currentQuestion, currentRoundNumber, statusMeta } =
-    useGameView();
+  const { state, actions, currentQuestion, currentRoundNumber } = useGameView();
   const table = state.tables.find((entry) => entry.id === tableId);
   const {
     authenticated,
@@ -89,21 +86,37 @@ export function PlayView({ tableId }: { tableId: string }) {
   const answer = getCurrentSubmittedAnswer(state, table.id);
   const isFrozen = isTableFrozenForCurrentRound(state, table.id);
   const isLocked = state.roundStatus !== "round_active" || !authenticated;
+  const questionOrder = currentQuestion?.order ?? Math.max(currentRoundNumber, 1);
+  const totalQuestionCount = state.questions.length || state.totalRounds;
+  const tableLabel = table.name;
+  const isTimeFinished = [
+    "round_locked",
+    "answer_revealed",
+    "score_updated",
+    "game_finished",
+  ].includes(state.roundStatus);
+  const isResultRevealed = [
+    "answer_revealed",
+    "score_updated",
+    "game_finished",
+  ].includes(state.roundStatus);
+  const hasSubmittedAnswer = Boolean(answer);
+  const isSelectedCorrect = Boolean(
+    isResultRevealed &&
+      hasSubmittedAnswer &&
+      currentQuestion &&
+      answer?.optionId === currentQuestion.correctOptionId
+  );
+  const isSelectedIncorrect = Boolean(
+    isResultRevealed &&
+      hasSubmittedAnswer &&
+      currentQuestion &&
+      answer?.optionId !== currentQuestion.correctOptionId
+  );
 
-  return (
-    <AppShell className="max-w-3xl space-y-5">
-      <EventHeader
-        eventName={`${state.eventName} / ${table.name}`}
-        eventTagline={state.eventTagline}
-        currentRoundNumber={Math.max(currentRoundNumber, 1)}
-        totalRounds={state.totalRounds}
-        statusLabel={statusMeta.label}
-        statusTone={statusMeta.tone}
-      />
-
-      <GameStatusBanner roundStatus={state.roundStatus} />
-
-      {!authenticated ? (
+  if (!authenticated) {
+    return (
+      <AppShell className="max-w-3xl space-y-5">
         <TableAuthPanel
           tableId={table.id}
           tableName={table.name}
@@ -112,71 +125,97 @@ export function PlayView({ tableId }: { tableId: string }) {
           error={tableSessionError}
           onSubmit={signIn}
         />
-      ) : null}
+      </AppShell>
+    );
+  }
 
-      {isFrozen ? (
-        <div className="rounded-[1.2rem] border border-warning/30 bg-warning/10 p-4 text-warning">
-          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em]">
-            <Snowflake className="size-4" />
-            Mesa congelada
-          </p>
-          <p className="mt-2 text-sm">
-            Esta mesa no participa en la ronda actual por efecto de BOMBA.
-          </p>
+  return (
+    <div className="min-h-screen bg-[#343a43] px-3 py-4 sm:py-6">
+      <main className="mx-auto w-full max-w-[430px] px-5 py-5">
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="inline-flex size-9 items-center justify-center rounded-[0.8rem] bg-[#2d333d] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)] transition-colors hover:text-foreground"
+            aria-label="Cambiar mesa"
+          >
+            <DoorOpen className="size-4" />
+          </button>
+          <div className="inline-flex items-center gap-2 rounded-[0.8rem] bg-[#2d333d] px-3 py-2 text-xs font-semibold tracking-[0.08em] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)]">
+            <Crown className="size-3.5 text-accent" />
+            {tableLabel}
+          </div>
         </div>
-      ) : null}
 
-      {isLocked && state.roundStatus !== "idle" && state.roundStatus !== "question_revealed" ? (
-        <div className="broadcast-panel-soft p-4">
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <AlertTriangle className="size-4 text-accent" />
-            {!authenticated
-              ? "Validá el acceso de la mesa para responder."
-              : "La ronda ya no acepta cambios."}
-          </p>
+        <div className="pt-2">
+          <MobileRoundTimer
+            roundEndsAt={state.roundEndsAt}
+            roundDurationSeconds={state.roundDurationSeconds}
+            roundStatus={state.roundStatus}
+            currentStep={questionOrder}
+            totalSteps={totalQuestionCount}
+          />
         </div>
-      ) : null}
 
-      <QuestionCard
-        question={currentQuestion}
-        roundStatus={state.roundStatus}
-        selectedOptionId={answer?.optionId ?? null}
-      />
+        <p className="mx-auto mt-4 max-w-[320px] text-center text-[1.32rem] leading-[1.4] text-foreground/88">
+          {currentQuestion?.prompt ?? "Esperando la próxima pregunta..."}
+        </p>
 
-        <SectionCard
-          title="Responder"
-          description="Podes cambiar tu opcion mientras la ronda siga activa y la mesa este validada."
-        >
+        {isFrozen ? (
+          <div className="mt-4 rounded-[1rem] bg-warning/14 px-4 py-3 text-warning shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+            <p className="flex items-center gap-2 text-[1rem] font-semibold">
+              <Snowflake className="size-4" />
+              Mesa congelada por BOMBA
+            </p>
+          </div>
+        ) : null}
+
+        {isTimeFinished ? (
+          <div
+            className={`relative mt-4 overflow-hidden rounded-[1rem] px-4 py-3 shadow-[0_10px_22px_rgba(0,0,0,0.24)] ${
+              isSelectedCorrect
+                ? "bg-success/18 text-success"
+                : isSelectedIncorrect
+                  ? "bg-danger/18 text-danger"
+                  : "bg-[#2d333d] text-muted-foreground"
+            }`}
+          >
+            {isSelectedCorrect ? <SuccessConfetti /> : null}
+            {!hasSubmittedAnswer ? (
+              <p className="flex items-start gap-2 text-[0.92rem] leading-snug">
+                <Clock3 className="mt-[0.1rem] size-4 shrink-0" />
+                Tiempo terminado.
+              </p>
+            ) : !isResultRevealed ? (
+              <p className="flex items-start gap-2 text-[0.92rem] leading-snug">
+                <Clock3 className="mt-[0.1rem] size-4 shrink-0" />
+                Tiempo terminado.
+              </p>
+            ) : isSelectedCorrect ? (
+              <p className="flex items-start gap-2 text-[0.92rem] leading-snug">
+                <CheckCircle2 className="mt-[0.1rem] size-4 shrink-0" />
+                Respuesta correcta!
+              </p>
+            ) : (
+              <p className="flex items-start gap-2 text-[0.92rem] leading-snug">
+                <XCircle className="mt-[0.1rem] size-4 shrink-0" />
+                Respuesta incorrecta.
+              </p>
+            )}
+          </div>
+        ) : null}
+
+        <div className="mt-5">
           <MobileAnswerPad
             question={currentQuestion}
-          selectedOptionId={answer?.optionId ?? null}
-          disabled={isLocked}
-          frozen={isFrozen}
-          onSelect={(optionId) => actions.submitAnswer(table.id, optionId)}
-        />
-      </SectionCard>
-
-      {currentRoundNumber >= 7 ? (
-        <SectionCard
-          title="Comodines disponibles"
-          description="En este MVP se activan desde el panel del operador."
-        >
-          <div className="flex flex-wrap gap-2">
-            {table.powerUps.map((powerUp) => (
-              <PowerUpBadge key={`${table.id}-${powerUp.type}`} powerUp={powerUp} />
-            ))}
-          </div>
-          {authenticated ? (
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="mt-4 text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
-            >
-              Cambiar de mesa en este dispositivo
-            </button>
-          ) : null}
-        </SectionCard>
-      ) : null}
-    </AppShell>
+            selectedOptionId={answer?.optionId ?? null}
+            roundStatus={state.roundStatus}
+            disabled={isLocked}
+            frozen={isFrozen}
+            onSelect={(optionId) => actions.submitAnswer(table.id, optionId)}
+          />
+        </div>
+      </main>
+    </div>
   );
 }

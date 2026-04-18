@@ -15,7 +15,6 @@ export function AppShell({ children, className }: AppShellProps) {
         <main
           className={cn(
             "broadcast-panel relative overflow-hidden p-4 sm:p-7",
-            "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/8",
             className
           )}
         >

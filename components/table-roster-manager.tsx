@@ -30,7 +30,7 @@ export function TableRosterManager({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-[1.35rem] border border-accent/20 bg-accent/10 p-4 text-sm text-muted-foreground">
+      <div className="app-accent-panel p-4 text-sm text-muted-foreground">
         <p className="flex items-center gap-2 font-semibold uppercase tracking-[0.18em] text-accent">
           <Users className="size-4" />
           Configuracion de mesas
@@ -45,6 +45,15 @@ export function TableRosterManager({
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant={activeCount === 2 ? "default" : "outline"}
+          className="h-10 justify-center"
+          disabled={disabled}
+          onClick={() => onSetActiveTableCount(2)}
+        >
+          Plantilla 2 mesas
+        </Button>
         {quickCounts.map((count) => (
           <Button
             key={count}
@@ -63,10 +72,10 @@ export function TableRosterManager({
         {tables.map((table) => (
           <div
             key={table.id}
-            className={`rounded-[1.15rem] border p-4 ${
+            className={`rounded-[0.95rem] border p-4 ${
               table.active
-                ? "border-border/70 bg-background/70"
-                : "border-border/40 bg-background/35 opacity-70"
+                ? "border-border/70 bg-[#2d333d]"
+                : "border-border/40 bg-[#252a31] opacity-70"
             }`}
           >
             <div className="mb-3 flex items-start justify-between gap-3">
@@ -98,7 +107,7 @@ export function TableRosterManager({
                   }))
                 }
                 placeholder="Nombre de la mesa"
-                className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent"
+                className="app-input h-10"
                 disabled={disabled}
               />
               <Button

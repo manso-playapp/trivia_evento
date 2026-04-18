@@ -24,7 +24,7 @@ export function SectionCard({
 }: SectionCardProps) {
   return (
     <Card className={cn("broadcast-panel", className)}>
-      <CardHeader className="border-b border-border/60 pb-5">
+      <CardHeader className="pb-4">
         <CardTitle className="text-lg tracking-tight text-foreground">
           {title}
         </CardTitle>
@@ -34,7 +34,7 @@ export function SectionCard({
           </CardDescription>
         ) : null}
       </CardHeader>
-      <CardContent className="pt-6 sm:pt-7">{children}</CardContent>
+      <CardContent className="pt-3 sm:pt-4">{children}</CardContent>
     </Card>
   );
 }

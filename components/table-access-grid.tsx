@@ -51,7 +51,7 @@ export function TableAccessGrid({ tables }: TableAccessGridProps) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-[1.35rem] border border-accent/20 bg-accent/10 p-4 text-sm text-muted-foreground">
+      <div className="app-accent-panel p-4 text-sm text-muted-foreground">
         <p className="font-semibold uppercase tracking-[0.18em] text-accent">
           Acceso por QR
         </p>
@@ -86,7 +86,7 @@ export function TableAccessGrid({ tables }: TableAccessGridProps) {
 
             <QrCodeTile value={joinUrl} label={`QR de acceso para ${table.name}`} />
 
-            <div className="rounded-[1.1rem] border border-border/60 bg-background/60 p-3">
+            <div className="rounded-[0.9rem] border border-border/60 bg-[#1e2229] p-3">
               <p className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
                 <KeyRound className="size-3.5" />
                 Codigo de respaldo
@@ -96,7 +96,7 @@ export function TableAccessGrid({ tables }: TableAccessGridProps) {
               </p>
             </div>
 
-            <div className="rounded-[1.1rem] border border-border/60 bg-background/60 p-3">
+            <div className="rounded-[0.9rem] border border-border/60 bg-[#1e2229] p-3">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                 URL de participacion
               </p>

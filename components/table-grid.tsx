@@ -11,6 +11,8 @@ type TableGridProps = {
   state: GameState;
   showPowerUps: boolean;
   compact?: boolean;
+  compactColumns?: number;
+  compactRows?: number;
   includeInactive?: boolean;
   maxItems?: number;
 };
@@ -19,6 +21,8 @@ export function TableGrid({
   state,
   showPowerUps,
   compact = false,
+  compactColumns,
+  compactRows,
   includeInactive = false,
   maxItems,
 }: TableGridProps) {
@@ -32,9 +36,23 @@ export function TableGrid({
   );
   const visibleTables =
     typeof maxItems === "number" ? sortedTables.slice(0, maxItems) : sortedTables;
+  const compactGridClassName = compact
+    ? "grid h-full gap-1.5"
+    : "grid gap-4 sm:grid-cols-2 xl:grid-cols-4";
+  const compactGridStyle =
+    compact && (compactColumns || compactRows)
+      ? {
+          ...(compactColumns
+            ? { gridTemplateColumns: `repeat(${compactColumns}, minmax(0, 1fr))` }
+            : {}),
+          ...(compactRows
+            ? { gridTemplateRows: `repeat(${compactRows}, minmax(0, 1fr))` }
+            : {}),
+        }
+      : undefined;
 
   return (
-    <div className={compact ? "grid grid-cols-5 gap-2" : "grid gap-4 sm:grid-cols-2 xl:grid-cols-4"}>
+    <div className={compactGridClassName} style={compactGridStyle}>
       {visibleTables.map((table) => (
         <TableCard
           key={table.id}

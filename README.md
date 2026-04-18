@@ -15,6 +15,12 @@ npm run dev
 
 Abrir `http://localhost:3000`.
 
+## Logo de empresa
+
+1. Crear carpeta `public/branding` (si no existe).
+2. Subir el logo con nombre exacto: `public/branding/company-logo.png`.
+3. La app lo mostrara automaticamente en home, screen, operator y play.
+
 ## Como funciona este MVP
 
 - Usa mocks locales para 20 mesas y 14 preguntas.

@@ -21,24 +21,25 @@ export function TableCard({
   compact = false,
 }: TableCardProps) {
   if (compact) {
+    const tableNumber = table.id.replace("table-", "");
+    const compactToneClassName = !table.active
+      ? "border-border/30 bg-background/40 opacity-60"
+      : isFrozen
+        ? "border-warning/45 bg-warning/20 text-warning"
+        : hasAnswered
+          ? "border-success/65 bg-success/16"
+          : "border-border/65 bg-surface/90";
+
     return (
       <div
-        className={`rounded-xl border p-2 ${
-          table.active
-            ? "border-border/70 bg-surface/95"
-            : "border-border/40 bg-background/35 opacity-70"
-        }`}
+        className={`h-full rounded-[0.5rem] border px-2.5 py-1.5 ${compactToneClassName}`}
       >
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-xs font-semibold text-foreground">{table.name}</p>
-          <p className="text-base font-semibold leading-none text-foreground">{table.score}</p>
-        </div>
-        <div className="mt-1.5 flex items-center justify-between gap-2">
-          <span className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            {table.id}
-          </span>
-          <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            {table.active ? (hasAnswered ? "Respondio" : "Pendiente") : "Inactiva"}
+        <div className="flex h-full items-center justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground">
+            Mesa {tableNumber}
+          </p>
+          <span className="text-lg font-semibold leading-none tabular-nums text-foreground">
+            {table.score}
           </span>
         </div>
       </div>
@@ -53,7 +54,7 @@ export function TableCard({
         : "border-border/70";
 
   return (
-    <div className={`rounded-[1.25rem] border bg-surface/95 p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] ${rankClassName}`}>
+    <div className={`rounded-[0.5rem] border bg-surface/95 p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] ${rankClassName}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2">

@@ -15,7 +15,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
   if (!question) {
     return (
-      <div className="broadcast-panel px-6 py-8">
+      <div className={compact ? "pb-3" : "broadcast-panel px-6 py-8"}>
         <p className="text-sm text-muted-foreground">
           La partida todavia no mostro la primera pregunta.
         </p>
@@ -23,11 +23,36 @@ export function QuestionCard({
     );
   }
 
+  if (compact) {
+    return (
+      <div className="py-8">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="border border-accent/35 bg-accent/12 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-accent uppercase">
+            Pregunta {question.order}
+          </span>
+          <span className="border border-border/70 bg-background/60 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            {question.category}
+          </span>
+          <span className="border border-border/70 bg-background/60 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            {roundStatus.replaceAll("_", " ")}
+          </span>
+          {selectedOptionId ? (
+            <span className="border border-success/65 bg-success/12 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-success uppercase">
+              Mesa eligio {selectedOptionId}
+            </span>
+          ) : null}
+        </div>
+
+        <h2 className="max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-[-0.03em] text-foreground sm:text-[2.26rem]">
+          {question.prompt}
+        </h2>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={`broadcast-panel ${compact ? "px-4 py-4" : "px-6 py-7 sm:px-8 sm:py-8"}`}
-    >
-      <div className={`${compact ? "mb-3 gap-2" : "mb-6 gap-3"} flex flex-wrap items-center`}>
+    <div className="broadcast-panel px-6 py-7 sm:px-8 sm:py-8">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
         <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-[10px] font-semibold tracking-[0.2em] text-accent uppercase">
           Pregunta {question.order}
         </span>
@@ -35,7 +60,7 @@ export function QuestionCard({
           {question.category}
         </span>
         {selectedOptionId ? (
-          <span className="rounded-full border border-border/70 bg-background px-3 py-1.5 text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+          <span className="rounded-full border border-success/65 bg-success/12 px-3 py-1.5 text-[10px] font-semibold tracking-[0.2em] text-success uppercase">
             Mesa eligio {selectedOptionId}
           </span>
         ) : null}
@@ -45,9 +70,7 @@ export function QuestionCard({
       </div>
 
       <h2
-        className={`max-w-5xl font-semibold leading-[1.04] tracking-[-0.04em] text-foreground ${
-          compact ? "text-[1.65rem] sm:text-[2rem]" : "text-[2rem] sm:text-5xl xl:text-6xl"
-        }`}
+        className="max-w-5xl text-[2rem] font-semibold leading-[1.04] tracking-[-0.04em] text-foreground sm:text-5xl xl:text-6xl"
       >
         {question.prompt}
       </h2>

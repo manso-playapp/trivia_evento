@@ -1,5 +1,6 @@
 import { Trophy } from "lucide-react";
 
+import { CompanyLogo } from "@/components/company-logo";
 import { StatusBadge } from "@/components/status-badge";
 
 type EventHeaderProps = {
@@ -24,9 +25,10 @@ export function EventHeader({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/8" />
       <div className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr] xl:items-end">
         <div className="space-y-4">
-          <p className="broadcast-label text-accent">
-          {eventTagline}
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <p className="broadcast-label text-accent">{eventTagline}</p>
+            <CompanyLogo className="h-10 w-[190px] sm:h-11 sm:w-[210px]" />
+          </div>
           <div>
             <h1 className="max-w-4xl text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground sm:text-5xl xl:text-6xl">
               {eventName}

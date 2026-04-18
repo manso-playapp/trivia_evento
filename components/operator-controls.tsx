@@ -49,7 +49,7 @@ export function OperatorControls({
   return (
     <div className="broadcast-panel space-y-5 px-5 py-5">
       {disabled ? (
-        <div className="rounded-[1.2rem] border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
+        <div className="app-accent-panel p-4 text-sm text-foreground">
           Los controles estan bloqueados hasta validar la sesion de operador.
         </div>
       ) : null}
@@ -108,7 +108,7 @@ export function OperatorControls({
           <select
             value={selectedX2TableId}
             onChange={(event) => setSelectedX2TableId(event.target.value)}
-            className="mb-3 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+            className="app-input mb-3"
             disabled={disabled}
           >
             {state.tables.map((table) => (
@@ -135,7 +135,7 @@ export function OperatorControls({
             <select
               value={selectedBombSourceId}
               onChange={(event) => setSelectedBombSourceId(event.target.value)}
-              className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+              className="app-input"
               disabled={disabled}
             >
               {state.tables.map((table) => (
@@ -147,7 +147,7 @@ export function OperatorControls({
             <select
               value={selectedBombTargetId}
               onChange={(event) => setSelectedBombTargetId(event.target.value)}
-              className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+              className="app-input"
               disabled={disabled}
             >
               {state.tables.map((table) => (

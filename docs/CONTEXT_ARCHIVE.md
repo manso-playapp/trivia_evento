@@ -85,3 +85,31 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - Se agrego alta y baja de mesas (activas/inactivas) desde `/operator`.
 - Se agrego edicion de nombre de mesa desde `/operator`.
 ```
+
+
+<!-- context-entry -->
+
+## Snapshot 2026-04-18T22:54:10.908Z
+
+- release: 0.6.30
+- changed_files: 38
+- head_commit: e7974d8 feat: compact broadcast screen 1356x768 and fix qr hydration
+
+```md
+# Handoff Context
+
+- generated_at: 2026-04-18T22:54:10.908Z
+- release_version: 0.6.30
+- release_date: 2026-04-18
+- source_changelog: docs/CHANGELOG.md
+- source_context: docs/PROJECT_CONTEXT.md
+
+## Compressed Context
+
+Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El estado del juego esta modelado como snapshot unico con `revision` y `lastEvent`. Hoy puede correr en modo mock local o en modo Supabase con writes por backend (`server`).
+
+## Latest Functional Changes
+
+- Fix de build/prerender: se quito query string del `src` de `next/image` para el logo (incompatible sin `images.localPatterns` en Next 16).
+- Se paso a archivo versionado `public/branding/company-logo-white.png` y branding global actualizado para evitar cache stale sin romper compilacion.
+```

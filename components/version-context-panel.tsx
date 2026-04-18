@@ -112,7 +112,7 @@ export function VersionContextPanel() {
 
   if (error || !meta) {
     return (
-      <div className="rounded-[1.2rem] border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
+      <div className="broadcast-panel-soft rounded-[0.95rem] p-4 text-sm text-danger">
         {error ?? "No hay metadata disponible."}
       </div>
     );
@@ -120,7 +120,7 @@ export function VersionContextPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[1.2rem] border border-accent/20 bg-accent/10 p-4">
+      <div className="app-accent-panel p-4">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
           <Tag className="size-3.5" />
           Version activa
@@ -146,7 +146,7 @@ export function VersionContextPanel() {
         </Button>
       </div>
 
-      <div className="rounded-[1.2rem] border border-border/70 bg-background/60 p-4">
+      <div className="broadcast-panel-soft rounded-[0.95rem] p-4">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           <RefreshCcw className="size-3.5" />
           Ultimos cambios
@@ -158,7 +158,7 @@ export function VersionContextPanel() {
         </ul>
       </div>
 
-      <div className="rounded-[1.2rem] border border-border/70 bg-background/60 p-4">
+      <div className="broadcast-panel-soft rounded-[0.95rem] p-4">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           <BookOpenText className="size-3.5" />
           Contexto comprimido
@@ -171,7 +171,7 @@ export function VersionContextPanel() {
         </p>
       </div>
 
-      <div className="rounded-[1.2rem] border border-warning/30 bg-warning/10 p-4">
+      <div className="broadcast-panel-soft rounded-[0.95rem] p-4">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-warning">
           <CircleAlert className="size-3.5" />
           Checklist para nuevo hilo

@@ -2,11 +2,11 @@ import { roundStatusMeta } from "@/lib/game-status";
 import type { RoundStatus } from "@/types";
 
 const toneClassMap = {
-  neutral: "border-border bg-muted/30 text-foreground",
-  accent: "border-accent/30 bg-accent/10 text-foreground",
-  success: "border-success/30 bg-success/10 text-success",
-  warning: "border-warning/30 bg-warning/10 text-warning",
-  danger: "border-danger/30 bg-danger/10 text-danger",
+  neutral: "broadcast-panel-soft text-foreground",
+  accent: "app-accent-panel text-foreground",
+  success: "border border-success/35 bg-success/14 text-success shadow-[0_10px_22px_rgba(0,0,0,0.24)]",
+  warning: "border border-warning/35 bg-warning/14 text-warning shadow-[0_10px_22px_rgba(0,0,0,0.24)]",
+  danger: "border border-danger/35 bg-danger/14 text-danger shadow-[0_10px_22px_rgba(0,0,0,0.24)]",
 };
 
 export function GameStatusBanner({ roundStatus }: { roundStatus: RoundStatus }) {
@@ -14,7 +14,7 @@ export function GameStatusBanner({ roundStatus }: { roundStatus: RoundStatus }) 
 
   return (
     <div
-      className={`rounded-[1.2rem] border px-5 py-4 ${toneClassMap[meta.tone]}`}
+      className={`rounded-[0.95rem] px-5 py-4 ${toneClassMap[meta.tone]}`}
     >
       <div className="flex items-start gap-4">
         <div className="mt-0.5 h-10 w-1 rounded-full bg-current/60" />

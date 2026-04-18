@@ -30,7 +30,7 @@ export function TableAuthPanel({
       description="La mesa necesita validar su codigo antes de poder responder."
     >
       <div className="space-y-4">
-        <div className="rounded-[1.2rem] border border-accent/20 bg-accent/10 p-4 text-sm">
+        <div className="app-accent-panel p-4 text-sm">
           <p className="flex items-center gap-2 font-semibold uppercase tracking-[0.18em] text-accent">
             <Smartphone className="size-4" />
             Acceso por mesa
@@ -58,7 +58,7 @@ export function TableAuthPanel({
             value={accessCode}
             onChange={(event) => setAccessCode(event.target.value)}
             placeholder="Codigo de mesa"
-            className="h-12 w-full rounded-xl border border-border bg-background px-4 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent"
+            className="app-input h-12 text-base"
           />
           <Button type="submit" className="h-12 w-full justify-center" disabled={loading}>
             {loading ? "Validando mesa..." : "Entrar a responder"}
