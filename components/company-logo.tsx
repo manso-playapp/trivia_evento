@@ -10,6 +10,7 @@ type CompanyLogoProps = {
   className?: string;
   imageClassName?: string;
   priority?: boolean;
+  sizes?: string;
 };
 
 /**
@@ -20,6 +21,7 @@ export function CompanyLogo({
   className,
   imageClassName,
   priority = false,
+  sizes = "220px",
 }: CompanyLogoProps) {
   const [hasError, setHasError] = useState(false);
 
@@ -44,7 +46,7 @@ export function CompanyLogo({
         src={BRANDING.companyLogoPath}
         alt={BRANDING.companyLogoAlt}
         fill
-        sizes="220px"
+        sizes={sizes}
         priority={priority}
         className={cn("object-contain object-right", imageClassName)}
         onError={() => setHasError(true)}
@@ -52,4 +54,3 @@ export function CompanyLogo({
     </div>
   );
 }
-

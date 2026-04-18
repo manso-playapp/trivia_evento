@@ -3,6 +3,17 @@
 Registro de cambios del proyecto. Este archivo es la fuente de verdad para la
 version visible en admin.
 
+## [0.6.33] - 2026-04-18
+- Se forzo refresh de logo por nombre de archivo versionado: branding ahora usa `public/branding/company-logo-v3.png`.
+- Esto evita cache stale de `next/image` cuando se reemplaza el logo con el mismo nombre.
+
+## [0.6.32] - 2026-04-18
+- En `/screen` se removio la palabra `TRIVIA` del header visual, dejando solo el logo.
+
+## [0.6.31] - 2026-04-18
+- Se actualizo el logo activo global para usar `public/branding/company-logo.png` (foto nueva subida).
+- El branding en todas las vistas vuelve a leer el archivo principal de logo sin alias intermedio.
+
 ## [0.6.30] - 2026-04-18
 - Fix de build/prerender: se quito query string del `src` de `next/image` para el logo (incompatible sin `images.localPatterns` en Next 16).
 - Se paso a archivo versionado `public/branding/company-logo-white.png` y branding global actualizado para evitar cache stale sin romper compilacion.

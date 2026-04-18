@@ -26,15 +26,13 @@ export function ScreenView() {
         <div className="grid h-full min-h-0 grid-rows-[3fr_1fr] gap-2">
           <div className="grid min-h-0 gap-2 xl:grid-cols-[1.58fr_0.42fr]">
             <div className="flex min-h-0 flex-col pr-1">
-              <div className="flex items-center justify-start gap-3 pb-2 pt-0.5 text-left">
+              <div className="flex items-center justify-start pb-2 pt-0.5 text-left">
                 <CompanyLogo
-                  className="h-10 w-[165px]"
+                  className="h-16 w-[400px]"
                   imageClassName="object-left"
+                  sizes="400px"
                   priority
                 />
-                <h2 className="text-[2.15rem] font-semibold leading-none tracking-[-0.05em] text-foreground">
-                  TRIVIA
-                </h2>
               </div>
 
               <div className="flex min-h-0 flex-1 flex-col justify-between py-2">
