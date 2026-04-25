@@ -10,6 +10,7 @@ import {
   setActiveTableCount,
   setPublicScreenSize,
   setRoundDuration,
+  setSoundSettings,
   setTableActive,
   setTableName,
   simulateAnswers,
@@ -160,6 +161,23 @@ export const executeGameCommand = (
       };
     }
 
+    case "set_sound_settings": {
+      const nextState = setSoundSettings(state, command.settings);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "sound_settings_updated",
+        payload: {
+          gameMusicEnabled: nextState.soundSettings.gameMusicEnabled,
+          roundMusicEnabled: nextState.soundSettings.roundMusicEnabled,
+          effectsEnabled: nextState.soundSettings.effectsEnabled,
+          musicVolume: nextState.soundSettings.musicVolume,
+          effectsVolume: nextState.soundSettings.effectsVolume,
+        },
+      };
+    }
+
     case "lock_round": {
       const nextState = lockRound(state);
 
@@ -264,6 +282,7 @@ export const executeGameCommand = (
         gameId: state.gameId,
         publicScreenWidthPx: state.publicScreenWidthPx,
         publicScreenHeightPx: state.publicScreenHeightPx,
+        soundSettings: state.soundSettings,
       };
 
       return {

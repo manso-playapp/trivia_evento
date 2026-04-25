@@ -18,6 +18,8 @@
   - destaque extra para ganadoras de la ronda
   - rojo para incorrecta / sin respuesta / congelada
 - La sesion de mesa ahora soporta multiples mesas en el mismo navegador con una sola cookie serializada.
+- El usuario paso un nuevo set manual definitivo de `23` preguntas.
+- Ese set nuevo todavia NO fue aplicado al repo porque el turno se interrumpio antes del parche.
 
 ## Files Touched
 
@@ -53,12 +55,16 @@
 - La simulacion E2E de 20 mesas esta lista pero no se ejecuto porque se rechazo la elevacion para pegarle al server local.
 - El script `scripts/e2e-20-tables.mjs` quedo configurado por defecto para correr con `10s` por ronda y esperar el vencimiento real antes de cerrar respuestas.
 - El estado `question_revealed` sigue existiendo por compatibilidad aunque ya no deberia quedar visible en flujo normal.
+- `data/mock-questions.ts` sigue con un set anterior de `20` preguntas.
+- El ultimo set del usuario trae una ambiguedad potencial:
+  - la pregunta 19 repite `Real Madrid` en C y D, con D marcada como correcta en el mensaje del usuario
 
 ## Last Verified Status
 
 - `npm run lint` paso en los ultimos cambios.
 - El script de simulacion `scripts/e2e-20-tables.mjs` compila con `node --check`.
 - La extraccion del PDF final de preguntas ya fue incorporada al dataset.
+- Despues de eso, el usuario reemplazo ese dataset por un listado manual de `23` preguntas, pendiente de carga.
 
 ## Resume Notes
 
@@ -72,3 +78,7 @@
   - mirar `/screen` abierto en paralelo para validacion visual
 - Si el usuario sigue iterando UI:
   - empezar por `components/table-card.tsx`, `components/table-grid.tsx`, `components/operator-controls.tsx`
+- Si el usuario retoma preguntas:
+  - actualizar [data/mock-questions.ts](/Users/javiermanso/Desktop/trivia-evento/data/mock-questions.ts:1) con las `23` preguntas del ultimo mensaje
+  - actualizar [README.md](/Users/javiermanso/Desktop/trivia-evento/README.md:26) y [data/README.md](/Users/javiermanso/Desktop/trivia-evento/data/README.md:5) a `23 preguntas`
+  - decidir si la pregunta 19 queda tal cual o si el usuario quiere corregir la opcion repetida

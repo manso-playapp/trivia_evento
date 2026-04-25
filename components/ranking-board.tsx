@@ -21,36 +21,45 @@ export function RankingBoard({
   if (compact) {
     return (
       <div className="flex h-full flex-col px-0.5 py-0.5">
-        <div className="mb-2 flex items-center gap-2">
-          <Medal className="size-3.5 text-accent" />
-          <h3 className="text-sm font-semibold tracking-tight text-foreground">
+        <div className="mb-2.5 flex items-center gap-2">
+          <Medal className="size-4 text-accent" />
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">
             Top {limit}
           </h3>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-1" style={compactRowsStyle}>
-          {topTables.map((table, index) => (
-            <div
-              key={table.id}
-              className={`flex h-full items-center justify-between rounded-[0.5rem] border px-2 py-1 ${
-                index === 0
-                  ? "border-accent/45 bg-accent/14"
-                  : "border-border/60 bg-background/55"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex size-6 items-center justify-center bg-background/80 text-xs font-semibold text-foreground">
+        <div className="grid min-h-0 flex-1 gap-1.5" style={compactRowsStyle}>
+          {topTables.map((table, index) => {
+            const isLeaderWithPresence =
+              index === 0 && (table.name.trim().length > 0 || table.score !== 0);
+            const rowClassName = isLeaderWithPresence
+              ? "border-accent/45 bg-accent/14 shadow-[0_10px_22px_rgba(0,0,0,0.24)]"
+              : "border-border/60 bg-surface/92 shadow-[0_10px_22px_rgba(0,0,0,0.24)]";
+            const positionClassName = isLeaderWithPresence
+              ? "border-accent/30 text-accent"
+              : "border-white/10 text-foreground";
+
+            return (
+              <div
+                key={table.id}
+                className={`grid h-full min-w-0 grid-cols-[3.5rem_1fr] items-stretch rounded-[1.15rem] border px-3 py-2 ${rowClassName}`}
+              >
+                <span
+                  className={`flex h-full items-center justify-center border-r pr-3 text-[1.45rem] font-semibold leading-none ${positionClassName}`}
+                >
                   {index + 1}
+                </span>
+                <div className="flex min-w-0 items-center justify-between gap-3 pl-3">
+                  <p className="min-w-0 truncate text-[0.72rem] font-semibold uppercase leading-none tracking-[0.08em] text-foreground">
+                    {table.name}
+                  </p>
+                  <p className="shrink-0 text-[1.08rem] font-semibold leading-none tabular-nums text-foreground">
+                    {table.score}
+                  </p>
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-foreground">
-                  {table.name}
-                </p>
               </div>
-              <p className="text-base font-semibold leading-none tabular-nums text-foreground">
-                {table.score}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );

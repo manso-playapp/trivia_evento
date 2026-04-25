@@ -3,6 +3,7 @@ import type {
   GameActorRole,
   GameEvent,
   GameState,
+  SoundSettings,
 } from "@/types";
 
 export type GameServiceListener = () => void;
@@ -27,6 +28,7 @@ export interface GameService {
   ): void;
   setRoundDuration(seconds: number, actorId?: string): void;
   setPublicScreenSize(widthPx: number, heightPx: number, actorId?: string): void;
+  setSoundSettings(settings: Partial<SoundSettings>, actorId?: string): void;
   setTableName(tableId: string, name: string, actorId?: string): void;
   setTableActive(tableId: string, active: boolean, actorId?: string): void;
   setActiveTableCount(count: number, actorId?: string): void;

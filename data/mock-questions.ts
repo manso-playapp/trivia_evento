@@ -25,6 +25,12 @@ const questionSeeds = [
     correctOptionId: "B" as AnswerOptionId,
   },
   {
+    category: "DMF",
+    prompt: "¿Cuántas personas formamos parte de DMF?",
+    options: ["5", "20", "11", "18"] as [string, string, string, string],
+    correctOptionId: "C" as AnswerOptionId,
+  },
+  {
     category: "Incoterms",
     prompt: "¿Qué significa la condición FOB?",
     options: [
@@ -47,15 +53,15 @@ const questionSeeds = [
     correctOptionId: "A" as AnswerOptionId,
   },
   {
-    category: "Transporte",
-    prompt: "¿Qué transporte es más rápido?",
-    options: [
-      "Marítimo",
-      "Terrestre",
-      "Aéreo",
-      "Ferroviario",
-    ] as [string, string, string, string],
-    correctOptionId: "C" as AnswerOptionId,
+    category: "DMF",
+    prompt: "¿En qué año se conocieron Diego y Andrés?",
+    options: ["1983", "1990", "1991", "2000"] as [
+      string,
+      string,
+      string,
+      string,
+    ],
+    correctOptionId: "A" as AnswerOptionId,
   },
   {
     category: "Documentación",
@@ -69,17 +75,6 @@ const questionSeeds = [
     correctOptionId: "B" as AnswerOptionId,
   },
   {
-    category: "Incoterms",
-    prompt: "¿Cuál de estos Incoterms incluye seguro internacional?",
-    options: [
-      "EXW",
-      "FOB",
-      "CIF",
-      "FCA",
-    ] as [string, string, string, string],
-    correctOptionId: "C" as AnswerOptionId,
-  },
-  {
     category: "Mercosur",
     prompt: "¿Qué país no forma parte del Mercosur?",
     options: [
@@ -91,24 +86,25 @@ const questionSeeds = [
     correctOptionId: "B" as AnswerOptionId,
   },
   {
-    category: "Origen",
-    prompt: "¿Qué documento prueba el origen de la mercadería?",
+    category: "DMF",
+    prompt:
+      "¿Quién en la oficina de DMF arma una torre de tazas de café vacías en su escritorio?",
     options: [
-      "BL",
-      "AWB",
-      "CRT",
-      "Certificado de origen",
+      "Cami",
+      "Lucas",
+      "Juan",
+      "Guille",
     ] as [string, string, string, string],
-    correctOptionId: "D" as AnswerOptionId,
+    correctOptionId: "C" as AnswerOptionId,
   },
   {
-    category: "Incoterms",
-    prompt: "¿Qué significa EXW?",
+    category: "Argentina",
+    prompt: "¿Cómo se llama el actual Ministro de Desregulación del gobierno Nacional?",
     options: [
-      "Entrega en fábrica",
-      "Entrega en puerto",
-      "Entrega con seguro",
-      "Entrega urgente",
+      "Federico Sturzenegger",
+      "Pablo Quirno",
+      "Toto Caputo",
+      "Bicho Fuertes",
     ] as [string, string, string, string],
     correctOptionId: "A" as AnswerOptionId,
   },
@@ -125,7 +121,7 @@ const questionSeeds = [
   },
   {
     category: "DMF",
-    prompt: "¿Quién es el encargado del área de exportaciones en DMF?",
+    prompt: "¿Quién es el encargado del área exportaciones en DMF?",
     options: [
       "Flor",
       "Nico",
@@ -185,7 +181,7 @@ const questionSeeds = [
       "Demefeta",
       "Aduaneta",
       "Chata",
-      "Tutu",
+      "Tutú",
     ] as [string, string, string, string],
     correctOptionId: "B" as AnswerOptionId,
   },
@@ -202,25 +198,25 @@ const questionSeeds = [
   },
   {
     category: "DMF",
-    prompt: "¿Cuántas personas formamos parte de DMF?",
+    prompt: "En DMF, ¿hinchas de qué club predominan?",
     options: [
-      "5",
-      "20",
-      "11",
-      "18",
+      "Boca",
+      "Unión",
+      "Colón",
+      "Boca",
     ] as [string, string, string, string],
-    correctOptionId: "C" as AnswerOptionId,
+    correctOptionId: "B" as AnswerOptionId,
   },
   {
-    category: "Incoterms",
-    prompt: "¿Cuál de estos Incoterms incluye flete y seguro?",
+    category: "Deportes",
+    prompt: "¿Cuál de los siguientes equipos NO está en las semifinales de la Champions League 2026?",
     options: [
-      "FCA",
-      "FOB",
-      "CIF",
-      "EXW",
+      "PSG",
+      "Bayern Múnich",
+      "Real Madrid",
+      "Real Madrid",
     ] as [string, string, string, string],
-    correctOptionId: "C" as AnswerOptionId,
+    correctOptionId: "D" as AnswerOptionId,
   },
   {
     category: "DMF",
@@ -233,6 +229,39 @@ const questionSeeds = [
       "Todas las anteriores son correctas",
     ] as [string, string, string, string],
     correctOptionId: "D" as AnswerOptionId,
+  },
+  {
+    category: "Desempate",
+    prompt: "¿Quién canta la canción Pa' la selección, que se hizo famosa en Qatar 2022?",
+    options: [
+      "Los Palmeras",
+      "La T y la M",
+      "Tini",
+      "Wos",
+    ] as [string, string, string, string],
+    correctOptionId: "B" as AnswerOptionId,
+  },
+  {
+    category: "Desempate",
+    prompt: "Desde la mesa de ayuda de AFIP, ¿cómo le decían al estudio DMF en 2005?",
+    options: [
+      "El estudio de los dinosaurios",
+      "El estudio de los sabaleros",
+      "El estudio de los gatos",
+      "El estudio de los murciélagos",
+    ] as [string, string, string, string],
+    correctOptionId: "D" as AnswerOptionId,
+  },
+  {
+    category: "Desempate",
+    prompt: "El Estrecho de Ormuz es clave para el comercio mundial porque:",
+    options: [
+      "Es la principal ruta del vodka de Rusia hacia Europa",
+      "Conecta el Mar Rojo con el Mediterráneo",
+      "Por allí transita cerca de un quinto del petróleo mundial",
+      "Es la única salida marítima de China",
+    ] as [string, string, string, string],
+    correctOptionId: "C" as AnswerOptionId,
   },
 ];
 

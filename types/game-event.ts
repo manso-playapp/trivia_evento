@@ -7,6 +7,7 @@ export type GameEventType =
   | "table_activity_updated"
   | "round_duration_updated"
   | "public_screen_size_updated"
+  | "sound_settings_updated"
   | "round_locked"
   | "correct_answer_revealed"
   | "scores_applied"

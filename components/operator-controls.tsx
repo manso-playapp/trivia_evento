@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, FlaskConical } from "lucide-react";
+import { ChevronRight, FlaskConical, Music2, Volume2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { GameState } from "@/types";
+import { normalizeSoundSettings } from "@/data/default-sound-settings";
+import { MAIN_ROUND_COUNT, needsTiebreaker } from "@/engine/game-selectors";
+import type { GameState, SoundSettings } from "@/types";
 
 type OperatorControlsProps = {
   state: GameState;
@@ -17,6 +19,7 @@ type OperatorControlsProps = {
   onApplyScore: () => void;
   onSetRoundDuration: (seconds: number) => void;
   onSetPublicScreenSize: (widthPx: number, heightPx: number) => void;
+  onSetSoundSettings: (settings: Partial<SoundSettings>) => void;
   onSimulateAnswers: () => void;
   onResetGame: () => void;
   onActivateX2: (tableId: string) => void;
@@ -34,6 +37,7 @@ export function OperatorControls({
   onApplyScore,
   onSetRoundDuration,
   onSetPublicScreenSize,
+  onSetSoundSettings,
   onSimulateAnswers,
   onResetGame,
   onActivateX2,
@@ -72,6 +76,7 @@ export function OperatorControls({
   const parsedScreenHeightDraft = Number(screenHeightDraft);
   const currentScreenWidthPx = state.publicScreenWidthPx ?? 1356;
   const currentScreenHeightPx = state.publicScreenHeightPx ?? 768;
+  const soundSettings = normalizeSoundSettings(state.soundSettings);
   const isScreenSizeDraftValid =
     Number.isInteger(parsedScreenWidthDraft) &&
     parsedScreenWidthDraft >= 320 &&
@@ -83,6 +88,10 @@ export function OperatorControls({
     isScreenSizeDraftValid &&
     (parsedScreenWidthDraft !== currentScreenWidthPx ||
       parsedScreenHeightDraft !== currentScreenHeightPx);
+  const isTiebreakerLaunch =
+    state.roundStatus === "score_updated" &&
+    state.currentQuestionIndex === MAIN_ROUND_COUNT - 1 &&
+    needsTiebreaker(state);
   const nextStep = (() => {
     switch (state.roundStatus) {
       case "idle":
@@ -94,8 +103,12 @@ export function OperatorControls({
         };
       case "score_updated":
         return {
-          label: "Lanzar siguiente pregunta",
-          description: "Pasa de la pausa entre rondas a la proxima pregunta.",
+          label: isTiebreakerLaunch
+            ? "Lanzar desempate"
+            : "Lanzar siguiente pregunta",
+          description: isTiebreakerLaunch
+            ? "Abre las 3 preguntas extra para las mesas empatadas arriba."
+            : "Pasa de la pausa entre rondas a la proxima pregunta.",
           action: onRevealQuestion,
           disabled: false,
         };
@@ -248,6 +261,110 @@ export function OperatorControls({
               Aplicar
             </Button>
           </div>
+        </div>
+      </div>
+
+      <div className="broadcast-panel-soft p-4">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="broadcast-label mb-2">Sonido pantalla publica</p>
+            <p className="text-sm text-muted-foreground">
+              Controla musica, ronda y efectos de la vista /screen.
+            </p>
+          </div>
+          <Volume2 className="mt-1 size-5 shrink-0 text-accent" />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            {
+              key: "gameMusicEnabled" as const,
+              label: "Juego",
+              description: "Ambiente activo",
+            },
+            {
+              key: "effectsEnabled" as const,
+              label: "Efectos",
+              description: "Tipeo, opciones y tic",
+            },
+          ].map((control) => (
+            <label
+              key={control.key}
+              className="flex cursor-pointer items-center justify-between gap-3 rounded-[0.75rem] border border-border/70 bg-background/70 px-3 py-2.5"
+            >
+              <span>
+                <span className="block text-sm font-semibold text-foreground">
+                  {control.label}
+                </span>
+                <span className="block text-[11px] text-muted-foreground">
+                  {control.description}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={soundSettings[control.key]}
+                onChange={(event) =>
+                  onSetSoundSettings({ [control.key]: event.target.checked })
+                }
+                disabled={disabled}
+                className="size-5 accent-[var(--accent)]"
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="rounded-[0.75rem] border border-border/70 bg-background/70 px-3 py-3">
+            <span className="mb-2 flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Music2 className="size-4 text-accent" />
+                Musica
+              </span>
+              <span className="text-sm font-semibold tabular-nums text-muted-foreground">
+                {Math.round(soundSettings.musicVolume * 100)}%
+              </span>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(soundSettings.musicVolume * 100)}
+              onChange={(event) =>
+                onSetSoundSettings({
+                  musicVolume: Number(event.target.value) / 100,
+                })
+              }
+              disabled={disabled}
+              className="w-full accent-[var(--accent)]"
+            />
+          </label>
+
+          <label className="rounded-[0.75rem] border border-border/70 bg-background/70 px-3 py-3">
+            <span className="mb-2 flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Volume2 className="size-4 text-accent" />
+                Efectos
+              </span>
+              <span className="text-sm font-semibold tabular-nums text-muted-foreground">
+                {Math.round(soundSettings.effectsVolume * 100)}%
+              </span>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(soundSettings.effectsVolume * 100)}
+              onChange={(event) =>
+                onSetSoundSettings({
+                  effectsVolume: Number(event.target.value) / 100,
+                })
+              }
+              disabled={disabled}
+              className="w-full accent-[var(--accent)]"
+            />
+          </label>
         </div>
       </div>
 

@@ -81,7 +81,7 @@ export function TimerDisplay({
         : "var(--accent)";
   const timerRingStyle = {
     background: `conic-gradient(${timerRingColor} ${progress}%, color-mix(in oklab, var(--muted) 68%, black) ${progress}% 100%)`,
-    filter: `drop-shadow(0 0 4px ${timerRingColor})`,
+    filter: `drop-shadow(0 0 12px color-mix(in oklab, ${timerRingColor} 72%, transparent))`,
   };
   const isFinalCountdown = seconds <= 5 && roundStatus === "round_active";
 
@@ -137,7 +137,7 @@ export function TimerDisplay({
             className="h-full bg-accent transition-[width] duration-500"
             style={{
               width: `${progress}%`,
-              filter: `drop-shadow(0 0 4px var(--accent))`,
+              filter: "drop-shadow(0 0 12px color-mix(in oklab, var(--accent) 72%, transparent))",
             }}
           />
         </div>

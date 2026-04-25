@@ -6,7 +6,6 @@ import type { ScoreReason, Table } from "@/types";
 
 type TableCardProps = {
   table: Table;
-  hasAnswered: boolean;
   isFrozen: boolean;
   currentRoundNumber: number;
   powerUpsAvailable: boolean;
@@ -42,7 +41,6 @@ const getIncomingBombMode = ({
 
 export function TableCard({
   table,
-  hasAnswered,
   isFrozen,
   currentRoundNumber,
   powerUpsAvailable,
@@ -136,10 +134,6 @@ export function TableCard({
                 <ThumbsDown className="size-3" />
                 {roundResult === "frozen" ? "Congelada" : "No sumo"}
               </span>
-            ) : hasAnswered ? (
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-200">
-                Respondiendo
-              </span>
             ) : null}
           </div>
           {showPowerUps ? (
@@ -198,9 +192,7 @@ export function TableCard({
       ? "border-success/55 bg-success/12 text-success"
       : showNegativeResult
         ? "border-danger/55 bg-danger/12 text-danger"
-        : hasAnswered
-          ? "border-cyan-300/45 bg-cyan-300/12 text-cyan-200"
-          : "border-border/70 bg-background/80 text-muted-foreground";
+        : "border-border/70 bg-background/80 text-muted-foreground";
   const statusLabel = isRoundWinner
     ? "Gano la ronda"
     : showPositiveResult
@@ -211,9 +203,7 @@ export function TableCard({
           : roundResult === "no_answer"
             ? "Sin respuesta"
             : "Incorrecta"
-        : hasAnswered
-          ? "Respondiendo"
-          : "En juego";
+        : "En juego";
 
   return (
     <div className={`relative overflow-hidden rounded-[0.5rem] border p-4 ${rankClassName} ${surfaceClassName} ${answerPulseClassName}`}>

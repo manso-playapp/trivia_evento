@@ -105,9 +105,15 @@
     0%,
     100% {
       background-color: color-mix(in oklab, var(--danger) 44%, black);
+      box-shadow:
+        0 0 14px color-mix(in oklab, var(--danger) 36%, transparent),
+        inset 0 0 20px color-mix(in oklab, var(--danger) 20%, transparent);
     }
     50% {
       background-color: color-mix(in oklab, var(--danger) 12%, black);
+      box-shadow:
+        0 0 22px color-mix(in oklab, var(--danger) 50%, transparent),
+        inset 0 0 26px color-mix(in oklab, var(--danger) 28%, transparent);
     }
   }
 
@@ -124,7 +130,7 @@
       opacity: 1;
     }
     100% {
-      transform: translate3d(var(--confetti-drift, 0px), 96px, 0) rotate(310deg);
+      transform: translate3d(var(--confetti-drift, 0px), var(--confetti-fall-distance, 96px), 0) rotate(310deg);
       opacity: 0;
     }
   }

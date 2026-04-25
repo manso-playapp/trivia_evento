@@ -9,6 +9,7 @@ type TypewriterTextProps = {
   className?: string;
   cursorClassName?: string;
   showCursorWhenDone?: boolean;
+  onCharacter?: (character: string, visibleCount: number) => void;
   onComplete?: () => void;
 };
 
@@ -37,11 +38,17 @@ export function TypewriterText({
   className,
   cursorClassName,
   showCursorWhenDone = false,
+  onCharacter,
   onComplete,
 }: TypewriterTextProps) {
   const [visibleCount, setVisibleCount] = useState(text.length);
   const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+  const onCharacterRef = useRef(onCharacter);
   const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCharacterRef.current = onCharacter;
+  }, [onCharacter]);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -94,6 +101,7 @@ export function TypewriterText({
 
       const nextCount = currentCount + 1;
       setVisibleCount(nextCount);
+      onCharacterRef.current?.(text[nextCount - 1] ?? "", nextCount);
 
       if (nextCount >= text.length) {
         onCompleteRef.current?.();

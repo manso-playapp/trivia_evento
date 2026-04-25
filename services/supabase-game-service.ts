@@ -14,6 +14,7 @@ import {
   setActiveTableCount,
   setPublicScreenSize,
   setRoundDuration,
+  setSoundSettings,
   setTableActive,
   setTableName,
   simulateAnswers,
@@ -511,6 +512,32 @@ export const createSupabaseGameService = (): GameService => ({
     });
   },
 
+  setSoundSettings(settings, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "set_sound_settings", settings },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => setSoundSettings(state, settings),
+      type: "sound_settings_updated",
+      actorRole: "operator",
+      actorId,
+      payload: (_currentState, nextState) => ({
+        gameMusicEnabled: nextState.soundSettings.gameMusicEnabled,
+        roundMusicEnabled: nextState.soundSettings.roundMusicEnabled,
+        effectsEnabled: nextState.soundSettings.effectsEnabled,
+        musicVolume: nextState.soundSettings.musicVolume,
+        effectsVolume: nextState.soundSettings.effectsVolume,
+      }),
+    });
+  },
+
   lockRound(actorId = "operator") {
     if (shouldUseServerWrites) {
       void commitServerCommand({
@@ -683,6 +710,7 @@ export const createSupabaseGameService = (): GameService => ({
         gameId: runtimeConfig.supabaseGameId,
         publicScreenWidthPx: state.publicScreenWidthPx,
         publicScreenHeightPx: state.publicScreenHeightPx,
+        soundSettings: state.soundSettings,
       }),
       type: "game_reset",
       actorRole: "operator",

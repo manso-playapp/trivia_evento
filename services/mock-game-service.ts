@@ -12,6 +12,7 @@ import {
   setActiveTableCount,
   setPublicScreenSize,
   setRoundDuration,
+  setSoundSettings,
   setTableActive,
   setTableName,
   simulateAnswers,
@@ -215,6 +216,22 @@ export const mockGameService: GameService = {
     });
   },
 
+  setSoundSettings(settings, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => setSoundSettings(state, settings),
+      type: "sound_settings_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        gameMusicEnabled: settings.gameMusicEnabled ?? null,
+        roundMusicEnabled: settings.roundMusicEnabled ?? null,
+        effectsEnabled: settings.effectsEnabled ?? null,
+        musicVolume: settings.musicVolume ?? null,
+        effectsVolume: settings.effectsVolume ?? null,
+      },
+    });
+  },
+
   lockRound(actorId = "operator") {
     commitLocalState({
       reducer: lockRound,
@@ -352,6 +369,7 @@ export const mockGameService: GameService = {
       ...nextState,
       publicScreenWidthPx: currentState.publicScreenWidthPx,
       publicScreenHeightPx: currentState.publicScreenHeightPx,
+      soundSettings: currentState.soundSettings,
       revision: 1,
       lastEvent: event,
     });

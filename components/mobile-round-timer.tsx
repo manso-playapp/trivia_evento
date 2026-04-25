@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { playCountdownTickSound, unlockScreenSounds } from "@/lib/screen-sounds";
 import type { RoundStatus } from "@/types";
 
 type MobileRoundTimerProps = {
@@ -53,6 +54,23 @@ export function MobileRoundTimer({
   const [seconds, setSeconds] = useState(() =>
     getInitialSeconds(roundDurationSeconds, roundStatus)
   );
+  const lastTickedSecondRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const unlock = () => {
+      unlockScreenSounds();
+    };
+
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("touchstart", unlock);
+    window.addEventListener("keydown", unlock);
+
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("touchstart", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -67,6 +85,20 @@ export function MobileRoundTimer({
       window.clearInterval(intervalId);
     };
   }, [roundDurationSeconds, roundEndsAt, roundStatus]);
+
+  useEffect(() => {
+    if (roundStatus !== "round_active" || seconds > 5 || seconds <= 0) {
+      lastTickedSecondRef.current = null;
+      return;
+    }
+
+    if (lastTickedSecondRef.current === seconds) {
+      return;
+    }
+
+    lastTickedSecondRef.current = seconds;
+    playCountdownTickSound();
+  }, [roundStatus, seconds]);
 
   const progress = Math.max(
     0,
@@ -85,17 +117,19 @@ export function MobileRoundTimer({
 
   const ringStyle = {
     background: `conic-gradient(${ringColor} ${progress}%, color-mix(in oklab, var(--muted) 70%, black) ${progress}% 100%)`,
-    filter: `drop-shadow(0 0 4px ${ringColor})`,
+    filter: `drop-shadow(0 0 12px color-mix(in oklab, ${ringColor} 72%, transparent))`,
   };
   const isFinalCountdown = seconds <= 5 && roundStatus === "round_active";
   const isScreenSize = size === "screen";
-  const timerWrapperSizeClassName = isScreenSize ? "size-[10.2rem]" : "size-[7.8rem]";
-  const timerRingPaddingClassName = isScreenSize ? "p-[12px]" : "p-[10px]";
-  const timerInnerInsetClassName = isScreenSize ? "inset-[16px]" : "inset-[14px]";
+  const timerWrapperSizeClassName = isScreenSize ? "size-[16.25rem]" : "size-[7.8rem]";
+  const timerRingPaddingClassName = isScreenSize ? "p-[16px]" : "p-[10px]";
+  const timerInnerInsetClassName = isScreenSize ? "inset-[22px]" : "inset-[14px]";
   const timerDigitClassName = isScreenSize
-    ? "text-[3.8rem]"
+    ? "text-[6.1rem]"
     : "text-[3rem]";
-  const stepTextClassName = isScreenSize ? "mt-5 text-lg" : "mt-4 text-base";
+  const stepTextClassName = isScreenSize
+    ? "mt-2 w-[16.25rem] text-right text-2xl"
+    : "mt-4 text-base";
 
   return (
     <div className="flex flex-col items-center justify-center">

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   getActiveTables,
   getCurrentRoundNumber,
-  getCurrentSubmittedAnswer,
   getPowerUp,
   getRanking,
   isTableFrozenForCurrentRound,
@@ -190,7 +189,6 @@ export function TableGrid({
           <TableCard
             key={table.id}
             table={table}
-            hasAnswered={Boolean(getCurrentSubmittedAnswer(state, table.id))}
             isFrozen={isTableFrozenForCurrentRound(state, table.id)}
             currentRoundNumber={currentRoundNumber}
             powerUpsAvailable={powerUpsAvailable}

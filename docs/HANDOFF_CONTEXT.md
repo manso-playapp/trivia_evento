@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-04-25T14:54:50.666Z
+- generated_at: 2026-04-25T21:44:12.817Z
 - release_version: 0.6.33
 - release_date: 2026-04-18
 - source_changelog: docs/CHANGELOG.md
@@ -17,39 +17,40 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- A  .history/app/api/game/command/route_20260409162648.ts
-- A  .history/app/api/game/command/route_20260411152055.ts
-- A  .history/data/mock-questions_20260425085755.ts
-- A  .history/data/mock-questions_20260425102905.ts
-- A  .history/data/mock-questions_20260425102907.ts
-- A  .history/data/mock-questions_20260425102913.ts
-- A  .history/data/mock-questions_20260425102917.ts
-- A  .history/data/mock-questions_20260425102929.ts
-- A  .history/data/mock-questions_20260425102954.ts
-- A  .history/data/mock-questions_20260425102957.ts
-- A  .history/data/mock-questions_20260425102959.ts
-- A  .history/data/mock-questions_20260425103004.ts
-- M  README.md
-- M  app/api/game/command/route.ts
-- M  app/api/table/session/route.ts
 - M  app/globals.css
 - M  components/answer-options-board.tsx
-- M  components/event-header.tsx
 - M  components/game-provider.tsx
+- M  components/mobile-round-timer.tsx
 - M  components/operator-controls.tsx
-- M  components/power-up-badge.tsx
 - M  components/question-card.tsx
+- M  components/ranking-board.tsx
+- M  components/success-confetti.tsx
 - M  components/table-card.tsx
 - M  components/table-grid.tsx
-- M  components/table-roster-manager.tsx
-- A  components/typewriter-text.tsx
+- M  components/timer-display.tsx
+- M  components/typewriter-text.tsx
 - M  components/views/operator-view.tsx
 - M  components/views/play-view.tsx
 - M  components/views/screen-view.tsx
 - M  data/README.md
+- A  data/default-sound-settings.ts
+- M  data/initial-game-state.ts
+- M  data/mock-questions.ts
+- M  docs/thread-checkpoint.md
+- M  docs/thread-todo.md
+- M  engine/game-command-runner.ts
+- M  engine/game-domain.ts
+- M  engine/game-selectors.ts
+- M  eslint.config.mjs
+- M  hooks/use-game-view.ts
+- M  lib/game-command-validator.ts
+- A  lib/screen-sounds.ts
+- A  public/sounds/juego.mp3
+- A  public/sounds/ronda.mp3
 
 ## Recent Commits
 
+- 050ece8 feat: comprehensive update to game components, services, and new features
 - ace0586 chore: update branding logo asset and screen header sizing
 - 5af88e7 feat: polish broadcast UI, mobile timer, branding and screen layout
 - e7974d8 feat: compact broadcast screen 1356x768 and fix qr hydration

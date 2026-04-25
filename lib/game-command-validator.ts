@@ -6,6 +6,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isOptionId = (value: unknown): value is "A" | "B" | "C" | "D" =>
   value === "A" || value === "B" || value === "C" || value === "D";
 
+const parseBoolean = (value: unknown) =>
+  typeof value === "boolean" ? value : undefined;
+
+const parseVolume = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.min(1, value))
+    : undefined;
+
 /**
  * Validador manual simple.
  * Evitamos dependencias extra en esta etapa y mantenemos la API legible.
@@ -94,6 +102,22 @@ export const parseGameCommand = (input: unknown): GameCommand | null => {
       }
 
       return null;
+
+    case "set_sound_settings":
+      if (!isRecord(input.settings)) {
+        return null;
+      }
+
+      return {
+        type: "set_sound_settings",
+        settings: {
+          gameMusicEnabled: parseBoolean(input.settings.gameMusicEnabled),
+          roundMusicEnabled: parseBoolean(input.settings.roundMusicEnabled),
+          effectsEnabled: parseBoolean(input.settings.effectsEnabled),
+          musicVolume: parseVolume(input.settings.musicVolume),
+          effectsVolume: parseVolume(input.settings.effectsVolume),
+        },
+      };
 
     case "activate_x2":
       if (typeof input.tableId === "string") {

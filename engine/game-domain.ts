@@ -1,11 +1,16 @@
 import { createInitialGameState } from "@/data/initial-game-state";
+import { normalizeSoundSettings } from "@/data/default-sound-settings";
 import { createDefaultPowerUps } from "@/data/mock-tables";
 import {
   getActiveTables,
   getCurrentQuestion,
   getCurrentRoundNumber,
   getCurrentSubmittedAnswer,
+  getTopScoringTables,
   getPowerUp,
+  isTableEligibleForCurrentRound,
+  MAIN_ROUND_COUNT,
+  needsTiebreaker,
   isTableFrozenForCurrentRound,
 } from "@/engine/game-selectors";
 import type {
@@ -13,6 +18,7 @@ import type {
   GameState,
   PowerUp,
   ScoreEvent,
+  SoundSettings,
   Table,
 } from "@/types";
 
@@ -174,6 +180,32 @@ export const setPublicScreenSize = (
   });
 };
 
+export const setSoundSettings = (
+  state: GameState,
+  settings: Partial<SoundSettings>
+): GameState => {
+  const nextSoundSettings = normalizeSoundSettings({
+    ...state.soundSettings,
+    ...settings,
+  });
+
+  if (
+    state.soundSettings &&
+    nextSoundSettings.gameMusicEnabled === state.soundSettings.gameMusicEnabled &&
+    nextSoundSettings.roundMusicEnabled === state.soundSettings.roundMusicEnabled &&
+    nextSoundSettings.effectsEnabled === state.soundSettings.effectsEnabled &&
+    nextSoundSettings.musicVolume === state.soundSettings.musicVolume &&
+    nextSoundSettings.effectsVolume === state.soundSettings.effectsVolume
+  ) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    soundSettings: nextSoundSettings,
+  });
+};
+
 /**
  * Paso interno del dominio.
  * En modo realtime real, el servidor deberia aplicar este freeze antes de abrir
@@ -246,8 +278,7 @@ export const applyFreezeForRound = (state: GameState): GameState => {
 export const revealQuestion = (state: GameState): GameState => {
   if (
     state.roundStatus !== "idle" &&
-    state.roundStatus !== "score_updated" &&
-    state.roundStatus !== "game_finished"
+    state.roundStatus !== "score_updated"
   ) {
     return state;
   }
@@ -309,6 +340,10 @@ export const submitAnswer = (
   const table = state.tables.find((entry) => entry.id === tableId);
 
   if (!table?.active) {
+    return state;
+  }
+
+  if (!isTableEligibleForCurrentRound(state, tableId)) {
     return state;
   }
 
@@ -462,10 +497,18 @@ export const applyScores = (state: GameState): GameState => {
   }
 
   const roundNumber = getCurrentRoundNumber(state);
+  const eligibleTiebreakerTableIds = state.tiebreakerTableIds ?? [];
   const scoreEvents: ScoreEvent[] = [];
 
   const tables = state.tables.map((table) => {
     if (!table.active) {
+      return table;
+    }
+
+    if (
+      roundNumber > MAIN_ROUND_COUNT &&
+      !eligibleTiebreakerTableIds.includes(table.id)
+    ) {
       return table;
     }
 
@@ -527,12 +570,31 @@ export const applyScores = (state: GameState): GameState => {
     };
   });
 
-  return stampState({
+  const stateWithScores = {
     ...state,
     tables,
     scoreEvents: [...state.scoreEvents, ...scoreEvents],
+  };
+  const hasRemainingTiebreakers = roundNumber < state.questions.length;
+  const shouldStartTiebreaker =
+    roundNumber === MAIN_ROUND_COUNT &&
+    hasRemainingTiebreakers &&
+    needsTiebreaker(stateWithScores);
+  const tiebreakerTableIds = shouldStartTiebreaker
+    ? getTopScoringTables(stateWithScores).map((table) => table.id)
+    : state.tiebreakerTableIds ?? [];
+  const shouldContinueTiebreaker =
+    roundNumber > MAIN_ROUND_COUNT && hasRemainingTiebreakers;
+
+  return stampState({
+    ...stateWithScores,
+    tiebreakerTableIds,
     roundStatus:
-      roundNumber >= state.totalRounds ? "game_finished" : "score_updated",
+      roundNumber < MAIN_ROUND_COUNT ||
+      shouldStartTiebreaker ||
+      shouldContinueTiebreaker
+        ? "score_updated"
+        : "game_finished",
   });
 };
 

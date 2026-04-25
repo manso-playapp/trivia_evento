@@ -1,3 +1,6 @@
+import { useEffect, useRef } from "react";
+
+import { playAnswerRevealSound } from "@/lib/screen-sounds";
 import type { AnswerOptionId, Question, RoundStatus } from "@/types";
 
 type AnswerOptionsBoardProps = {
@@ -15,6 +18,27 @@ export function AnswerOptionsBoard({
   compact = false,
   visible = true,
 }: AnswerOptionsBoardProps) {
+  const lastRevealSoundKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const revealSoundKey = question && visible ? question.id : null;
+
+    if (!question || !visible || lastRevealSoundKeyRef.current === revealSoundKey) {
+      return;
+    }
+
+    lastRevealSoundKeyRef.current = revealSoundKey;
+    const timeoutIds = question.options.map((_, index) =>
+      window.setTimeout(() => {
+        playAnswerRevealSound(index);
+      }, index * 180)
+    );
+
+    return () => {
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    };
+  }, [question, visible]);
+
   if (!question) {
     return null;
   }

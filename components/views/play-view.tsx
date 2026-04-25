@@ -10,6 +10,7 @@ import {
   getCurrentSubmittedAnswer,
   getPowerUp,
   isTableActive,
+  isTableEligibleForCurrentRound,
   isTableFrozenForCurrentRound,
 } from "@/engine/game-selectors";
 import { MobileRoundTimer } from "@/components/mobile-round-timer";
@@ -22,7 +23,15 @@ import { TableAuthPanel } from "@/components/table-auth-panel";
 import { TypewriterText } from "@/components/typewriter-text";
 
 export function PlayView({ tableId }: { tableId: string }) {
-  const { state, actions, currentQuestion, currentRoundNumber } = useGameView();
+  const {
+    state,
+    actions,
+    currentQuestion,
+    currentRoundNumber,
+    finalWinners,
+    hasUniqueWinner,
+    visibleTotalRounds,
+  } = useGameView();
   const table = state.tables.find((entry) => entry.id === tableId);
   const {
     authenticated,
@@ -88,10 +97,17 @@ export function PlayView({ tableId }: { tableId: string }) {
 
   const answer = getCurrentSubmittedAnswer(state, table.id);
   const isFrozen = isTableFrozenForCurrentRound(state, table.id);
-  const isLocked = state.roundStatus !== "round_active" || !authenticated;
+  const isTiebreakerEligible = isTableEligibleForCurrentRound(state, table.id);
+  const isLocked =
+    state.roundStatus !== "round_active" ||
+    !authenticated ||
+    !isTiebreakerEligible;
   const questionOrder = currentQuestion?.order ?? Math.max(currentRoundNumber, 1);
-  const totalQuestionCount = state.questions.length || state.totalRounds;
+  const totalQuestionCount = visibleTotalRounds;
   const tableLabel = table.name;
+  const finalWinnerNames = finalWinners
+    .map((winner) => winner.name)
+    .join(" / ");
   const powerUpNoticeRoundNumber =
     state.roundStatus === "score_updated"
       ? currentRoundNumber + 1
@@ -195,6 +211,55 @@ export function PlayView({ tableId }: { tableId: string }) {
     );
   }
 
+  if (state.roundStatus === "game_finished") {
+    const isWinningTable = finalWinners.some((winner) => winner.id === table.id);
+
+    return (
+      <div className="min-h-screen bg-[#343a43] px-3 py-4 sm:py-6">
+        {hasUniqueWinner && isWinningTable ? (
+          <SuccessConfetti fullScreen durationMs={20_000} />
+        ) : null}
+        <main className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[430px] flex-col px-5 py-5 sm:min-h-[calc(100vh-3rem)]">
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="inline-flex size-9 items-center justify-center rounded-[0.8rem] bg-[#2d333d] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)] transition-colors hover:text-foreground"
+              aria-label="Cambiar mesa"
+            >
+              <DoorOpen className="size-4" />
+            </button>
+            <div className="inline-flex items-center gap-2 rounded-[0.8rem] bg-[#2d333d] px-3 py-2 text-xs font-semibold tracking-[0.08em] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)]">
+              <Crown className="size-3.5 text-accent" />
+              {tableLabel}
+            </div>
+          </div>
+
+          <section className="flex flex-1 flex-col items-center justify-center pb-12 text-center">
+            <CompanyLogo
+              priority
+              className="mb-8 h-20 w-[260px]"
+              imageClassName="object-center"
+              sizes="260px"
+            />
+            <p className="text-[1.85rem] font-semibold leading-tight text-foreground">
+              {isWinningTable
+                ? hasUniqueWinner
+                  ? "Ganaron la trivia"
+                  : "Empate en la cima"
+                : "Partida finalizada"}
+            </p>
+            <p className="mt-3 max-w-[320px] text-[1.05rem] leading-snug text-foreground/82">
+              {hasUniqueWinner
+                ? `${finalWinnerNames} terminó con ${finalWinners[0]?.score ?? 0} puntos.`
+                : `${finalWinnerNames} comparten el primer puesto.`}
+            </p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   if (state.roundStatus === "score_updated") {
     return (
       <div className="min-h-screen bg-[#343a43] px-3 py-4 sm:py-6">
@@ -219,7 +284,9 @@ export function PlayView({ tableId }: { tableId: string }) {
               Preparando proxima ronda
             </p>
             <p className="mx-auto mt-3 max-w-[300px] text-[1.02rem] leading-snug text-foreground/76">
-              Atentos a los comodines antes de la siguiente pregunta.
+              {isTiebreakerEligible
+                ? "Atentos a los comodines antes de la siguiente pregunta."
+                : "La mesa queda mirando el desempate desde afuera."}
             </p>
           </section>
 
@@ -302,6 +369,17 @@ export function PlayView({ tableId }: { tableId: string }) {
             </p>
             <p className="mt-1 text-[0.9rem] leading-snug text-danger/85">
               No pueden responder esta ronda.
+            </p>
+          </div>
+        ) : null}
+
+        {!isTiebreakerEligible ? (
+          <div className="mt-4 rounded-[1rem] bg-[#2d333d] px-4 py-3 text-muted-foreground shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+            <p className="text-[1rem] font-semibold text-foreground">
+              Desempate en curso
+            </p>
+            <p className="mt-1 text-[0.9rem] leading-snug">
+              Solo responden las mesas que empataron arriba.
             </p>
           </div>
         ) : null}

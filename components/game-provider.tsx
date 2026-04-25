@@ -14,7 +14,7 @@ import {
   shouldUseClientTickPolling,
 } from "@/lib/runtime-config";
 import { gameService } from "@/services/create-game-service";
-import type { AnswerOptionId, GameState } from "@/types";
+import type { AnswerOptionId, GameState, SoundSettings } from "@/types";
 
 type GameActions = {
   revealQuestion: () => void;
@@ -22,6 +22,7 @@ type GameActions = {
   submitAnswer: (tableId: string, optionId: AnswerOptionId) => void;
   setRoundDuration: (seconds: number) => void;
   setPublicScreenSize: (widthPx: number, heightPx: number) => void;
+  setSoundSettings: (settings: Partial<SoundSettings>) => void;
   setTableName: (tableId: string, name: string) => void;
   setTableActive: (tableId: string, active: boolean) => void;
   setActiveTableCount: (count: number) => void;
@@ -134,6 +135,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setRoundDuration: (seconds) => gameService.setRoundDuration(seconds),
     setPublicScreenSize: (widthPx, heightPx) =>
       gameService.setPublicScreenSize(widthPx, heightPx),
+    setSoundSettings: (settings) => gameService.setSoundSettings(settings),
     setTableName: (tableId, name) => gameService.setTableName(tableId, name),
     setTableActive: (tableId, active) =>
       gameService.setTableActive(tableId, active),

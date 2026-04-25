@@ -1,5 +1,6 @@
 import { mockQuestions } from "@/data/mock-questions";
 import { mockTables } from "@/data/mock-tables";
+import { defaultSoundSettings } from "@/data/default-sound-settings";
 import type { GameState } from "@/types";
 
 const INITIAL_STATE_TIMESTAMP = "2026-01-01T00:00:00.000Z";
@@ -16,6 +17,7 @@ export const createInitialGameState = (): GameState => ({
   eventTagline: "Corporate Live Challenge",
   publicScreenWidthPx: 1356,
   publicScreenHeightPx: 768,
+  soundSettings: defaultSoundSettings,
   totalRounds: mockQuestions.length,
   currentQuestionIndex: null,
   roundStatus: "idle",
@@ -23,6 +25,7 @@ export const createInitialGameState = (): GameState => ({
   roundEndsAt: null,
   questions: JSON.parse(JSON.stringify(mockQuestions)) as GameState["questions"],
   tables: JSON.parse(JSON.stringify(mockTables)) as GameState["tables"],
+  tiebreakerTableIds: [],
   submittedAnswers: [],
   scoreEvents: [],
   updatedAt: INITIAL_STATE_TIMESTAMP,

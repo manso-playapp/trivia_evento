@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 const CONFETTI_PARTICLES = [
   { left: "6%", drift: "-14px", delay: "0ms", duration: "1250ms", color: "var(--selection-green)" },
   { left: "13%", drift: "10px", delay: "120ms", duration: "1150ms", color: "var(--accent)" },
@@ -15,23 +17,70 @@ const CONFETTI_PARTICLES = [
   { left: "90%", drift: "9px", delay: "40ms", duration: "1260ms", color: "var(--warning)" },
 ];
 
-export function SuccessConfetti() {
+const FULL_SCREEN_PARTICLES = Array.from({ length: 5 }).flatMap((_, groupIndex) =>
+  CONFETTI_PARTICLES.map((particle, particleIndex) => ({
+    ...particle,
+    delay: `${groupIndex * 360 + particleIndex * 35}ms`,
+    duration: `${3600 + ((groupIndex + particleIndex) % 5) * 420}ms`,
+    drift: `${Number.parseInt(particle.drift, 10) * (4 + groupIndex)}px`,
+  }))
+);
+
+type SuccessConfettiProps = {
+  durationMs?: number;
+  fullScreen?: boolean;
+};
+
+export function SuccessConfetti({
+  durationMs,
+  fullScreen = false,
+}: SuccessConfettiProps) {
+  const [visible, setVisible] = useState(true);
+  const particles = fullScreen ? FULL_SCREEN_PARTICLES : CONFETTI_PARTICLES;
+
+  useEffect(() => {
+    if (!durationMs) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setVisible(false);
+    }, durationMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [durationMs]);
+
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {CONFETTI_PARTICLES.map((particle, index) => (
+    <div
+      className={`pointer-events-none ${
+        fullScreen
+          ? "fixed inset-0 z-50 overflow-hidden"
+          : "absolute inset-0 overflow-hidden"
+      }`}
+      aria-hidden="true"
+    >
+      {particles.map((particle, index) => (
         <span
           key={`${particle.left}-${index}`}
-          className="confetti-piece absolute -top-2 block h-2 w-1 rounded-[1px]"
+          className={`confetti-piece absolute -top-2 block rounded-[1px] ${
+            fullScreen ? "h-4 w-2" : "h-2 w-1"
+          }`}
           style={{
             left: particle.left,
             backgroundColor: particle.color,
             animationDelay: particle.delay,
             animationDuration: particle.duration,
             ["--confetti-drift" as string]: particle.drift,
+            ["--confetti-fall-distance" as string]: fullScreen ? "110vh" : "96px",
           }}
         />
       ))}
     </div>
   );
 }
-

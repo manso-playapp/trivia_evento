@@ -6,9 +6,18 @@ import { CompanyLogo } from "@/components/company-logo";
 import { MobileRoundTimer } from "@/components/mobile-round-timer";
 import { QuestionCard } from "@/components/question-card";
 import { RankingBoard } from "@/components/ranking-board";
+import { SuccessConfetti } from "@/components/success-confetti";
 import { TableGrid } from "@/components/table-grid";
 import { TypewriterText } from "@/components/typewriter-text";
 import { useGameView } from "@/hooks/use-game-view";
+import {
+  configureScreenSounds,
+  playQuestionTypeSound,
+  setGameActiveSound,
+  setRoundSound,
+  stopScreenLoopSounds,
+  unlockScreenSounds,
+} from "@/lib/screen-sounds";
 import type { GameState, Table } from "@/types";
 
 const getRoundWinnerNames = (state: GameState, tables: Table[]) => {
@@ -95,7 +104,9 @@ function RoundIntermission({
     currentRoundNumber + winnerNames.length
   );
 
-  if (currentRoundNumber <= 2) {
+  if (currentRoundNumber === 20 && isTieAtTop) {
+    nudge = "Hay empate en el primer puesto. Se abre el desempate con 3 preguntas extra.";
+  } else if (currentRoundNumber <= 2) {
     nudge = pickRoundText(
       [
         "Vamos bien, esto recien arranca.",
@@ -172,9 +183,80 @@ function RoundIntermission({
   );
 }
 
+function FinalScreen({
+  ranking,
+  winners,
+  uniqueWinner,
+}: {
+  ranking: Table[];
+  winners: Table[];
+  uniqueWinner: boolean;
+}) {
+  const winnerNames = winners.map((winner) => winner.name).join(" / ");
+  const leader = winners[0];
+
+  return (
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-black px-8 py-7">
+      {uniqueWinner ? <SuccessConfetti fullScreen durationMs={20_000} /> : null}
+
+      <div className="flex items-center justify-between">
+        <CompanyLogo
+          className="h-16 w-[400px]"
+          imageClassName="object-left"
+          sizes="400px"
+          priority
+        />
+        <p className="broadcast-label text-accent">Resultado final</p>
+      </div>
+
+      <div className="grid min-h-0 flex-1 items-center gap-8 xl:grid-cols-[1.36fr_0.64fr]">
+        <section className="min-w-0">
+          <p className="mb-5 inline-flex border border-accent/35 bg-accent/12 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-accent uppercase">
+            {uniqueWinner ? "Ganador unico" : "Empate final"}
+          </p>
+          <h1 className="max-w-5xl text-[4.8rem] font-semibold leading-[0.95] text-foreground">
+            {uniqueWinner ? (
+              <>
+                Felicitaciones,
+                <br />
+                {leader?.name ?? "mesa ganadora"}
+              </>
+            ) : (
+              <>
+                Empate en la cima
+                <br />
+                tras el desempate
+              </>
+            )}
+          </h1>
+          <p className="mt-7 max-w-4xl text-[1.75rem] font-semibold leading-tight text-cyan-100">
+            {uniqueWinner
+              ? `${leader?.score ?? 0} puntos y primer puesto confirmado.`
+              : `${winnerNames || "Las mesas líderes"} comparten el primer puesto con ${
+                  leader?.score ?? 0
+                } puntos.`}
+          </p>
+        </section>
+
+        <div className="min-h-0">
+          <RankingBoard ranking={ranking} limit={5} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ScreenView() {
-  const { state, currentQuestion, ranking, activeTables, currentRoundNumber } =
-    useGameView();
+  const {
+    state,
+    currentQuestion,
+    ranking,
+    activeTables,
+    currentRoundNumber,
+    finalWinners,
+    hasUniqueWinner,
+    visibleTotalRounds,
+  } = useGameView();
   const [visibleAnswersQuestionId, setVisibleAnswersQuestionId] = useState<
     string | null
   >(null);
@@ -186,11 +268,50 @@ export function ScreenView() {
     Math.min(10, Math.ceil(activeTableCount / compactRows))
   );
   const questionOrder = currentQuestion?.order ?? Math.max(currentRoundNumber, 1);
-  const totalQuestionCount = state.questions.length || state.totalRounds;
+  const totalQuestionCount = visibleTotalRounds;
   const isIntermission = state.roundStatus === "score_updated";
   const showAnswers = visibleAnswersQuestionId === currentQuestion?.id;
   const publicScreenWidthPx = state.publicScreenWidthPx ?? 1356;
   const publicScreenHeightPx = state.publicScreenHeightPx ?? 768;
+
+  useEffect(() => {
+    configureScreenSounds(state.soundSettings);
+  }, [state.soundSettings]);
+
+  useEffect(() => {
+    const unlock = () => {
+      const gameIsActive =
+        state.roundStatus !== "idle" && state.roundStatus !== "game_finished";
+      const roundIsActive = state.roundStatus === "round_active";
+
+      unlockScreenSounds();
+      setGameActiveSound(gameIsActive && !roundIsActive);
+      setRoundSound(false);
+    };
+
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("touchstart", unlock);
+    window.addEventListener("keydown", unlock);
+
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("touchstart", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [state.roundStatus]);
+
+  useEffect(() => {
+    const gameIsActive =
+      state.roundStatus !== "idle" && state.roundStatus !== "game_finished";
+    const roundIsActive = state.roundStatus === "round_active";
+
+    setGameActiveSound(gameIsActive && !roundIsActive);
+    setRoundSound(false);
+
+    return () => {
+      stopScreenLoopSounds();
+    };
+  }, [state.roundStatus]);
 
   useEffect(() => {
     if (revealAnswersTimeoutRef.current !== null) {
@@ -224,19 +345,26 @@ export function ScreenView() {
   }, [currentQuestion?.id]);
 
   return (
-    <div className="min-h-screen px-2 py-2">
+    <div className="min-h-screen bg-black px-2 py-2">
       <main
-        className="mx-auto w-full overflow-hidden"
+        className="mx-auto w-full overflow-hidden bg-black"
         style={{
           height: `${publicScreenHeightPx}px`,
           maxHeight: `${publicScreenHeightPx}px`,
           maxWidth: `${publicScreenWidthPx}px`,
         }}
       >
+        {state.roundStatus === "game_finished" ? (
+          <FinalScreen
+            ranking={ranking}
+            winners={finalWinners}
+            uniqueWinner={hasUniqueWinner}
+          />
+        ) : (
         <div className="grid h-full min-h-0 grid-rows-[3fr_1fr] gap-2">
           <div className="grid min-h-0 gap-2 xl:grid-cols-[1.58fr_0.42fr]">
             <div className="flex min-h-0 flex-col pr-1">
-              <div className="flex items-center justify-start pb-2 pt-0.5 text-left">
+              <div className="flex items-center justify-start pb-2 pt-4 text-left">
                 <CompanyLogo
                   className="h-16 w-[400px]"
                   imageClassName="object-left"
@@ -254,6 +382,7 @@ export function ScreenView() {
                       question={currentQuestion}
                       roundStatus={state.roundStatus}
                       compact
+                      onPromptCharacter={playQuestionTypeSound}
                       onPromptAnimationComplete={revealAnswersAfterPrompt}
                     />
                     <AnswerOptionsBoard
@@ -279,7 +408,7 @@ export function ScreenView() {
                 />
               </div>
 
-              <div className="mt-3 min-h-0 flex-1">
+              <div className="mt-0 min-h-0 flex-1">
                 <RankingBoard ranking={ranking} limit={5} compact />
               </div>
             </aside>
@@ -303,6 +432,7 @@ export function ScreenView() {
             </div>
           </div>
         </div>
+        )}
       </main>
     </div>
   );

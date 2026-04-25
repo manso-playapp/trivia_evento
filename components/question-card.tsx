@@ -6,6 +6,7 @@ type QuestionCardProps = {
   roundStatus: RoundStatus;
   selectedOptionId?: AnswerOptionId | null;
   compact?: boolean;
+  onPromptCharacter?: (character: string, visibleCount: number) => void;
   onPromptAnimationComplete?: () => void;
 };
 
@@ -14,6 +15,7 @@ export function QuestionCard({
   roundStatus,
   selectedOptionId,
   compact = false,
+  onPromptCharacter,
   onPromptAnimationComplete,
 }: QuestionCardProps) {
   if (!question) {
@@ -50,6 +52,7 @@ export function QuestionCard({
           <TypewriterText
             text={question.prompt}
             speedMs={20}
+            onCharacter={onPromptCharacter}
             onComplete={onPromptAnimationComplete}
           />
         </h2>
@@ -82,6 +85,7 @@ export function QuestionCard({
         <TypewriterText
           text={question.prompt}
           speedMs={16}
+          onCharacter={onPromptCharacter}
           onComplete={onPromptAnimationComplete}
         />
       </h2>

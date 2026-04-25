@@ -1,4 +1,5 @@
 import type { AnswerOptionId } from "@/types/answer-option";
+import type { SoundSettings } from "@/types/sound-settings";
 
 /**
  * Comandos intencionales del dominio.
@@ -13,6 +14,7 @@ export type GameCommand =
   | { type: "set_active_table_count"; count: number }
   | { type: "set_round_duration"; seconds: number }
   | { type: "set_public_screen_size"; widthPx: number; heightPx: number }
+  | { type: "set_sound_settings"; settings: Partial<SoundSettings> }
   | { type: "lock_round" }
   | { type: "reveal_correct_answer" }
   | { type: "apply_scores" }

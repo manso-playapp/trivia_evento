@@ -5,6 +5,9 @@ import {
   getActiveTables,
   getCurrentQuestion,
   getCurrentRoundNumber,
+  getTopScoringTables,
+  getVisibleTotalRounds,
+  hasUniqueWinner,
   getInactiveTables,
   getRanking,
 } from "@/engine/game-selectors";
@@ -23,8 +26,11 @@ export const useGameView = () => {
     activeTables: getActiveTables(state),
     currentQuestion: getCurrentQuestion(state),
     currentRoundNumber: getCurrentRoundNumber(state),
+    finalWinners: getTopScoringTables(state),
+    hasUniqueWinner: hasUniqueWinner(state),
     inactiveTables: getInactiveTables(state),
     ranking: getRanking(state),
     statusMeta: roundStatusMeta[state.roundStatus],
+    visibleTotalRounds: getVisibleTotalRounds(state),
   };
 };

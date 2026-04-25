@@ -2,6 +2,7 @@ import type { Question } from "@/types/question";
 import type { GameEvent } from "@/types/game-event";
 import type { RoundStatus } from "@/types/round-status";
 import type { ScoreEvent } from "@/types/score-event";
+import type { SoundSettings } from "@/types/sound-settings";
 import type { SubmittedAnswer } from "@/types/submitted-answer";
 import type { Table } from "@/types/table";
 
@@ -16,6 +17,7 @@ export type GameState = {
   eventTagline: string;
   publicScreenWidthPx: number;
   publicScreenHeightPx: number;
+  soundSettings: SoundSettings;
   totalRounds: number;
   currentQuestionIndex: number | null;
   roundStatus: RoundStatus;
@@ -23,6 +25,7 @@ export type GameState = {
   roundEndsAt: string | null;
   questions: Question[];
   tables: Table[];
+  tiebreakerTableIds?: string[];
   submittedAnswers: SubmittedAnswer[];
   scoreEvents: ScoreEvent[];
   updatedAt: string;

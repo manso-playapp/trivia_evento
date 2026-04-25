@@ -94,6 +94,7 @@ export function OperatorView() {
           onApplyScore={actions.applyScores}
           onSetRoundDuration={actions.setRoundDuration}
           onSetPublicScreenSize={actions.setPublicScreenSize}
+          onSetSoundSettings={actions.setSoundSettings}
           onSimulateAnswers={actions.simulateAnswers}
           onResetGame={actions.resetGame}
           onActivateX2={actions.activateX2}
