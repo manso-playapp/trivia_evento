@@ -3,8 +3,10 @@ import {
   applyTableSessionCookie,
   clearTableSessionCookie,
   getAuthenticatedTableId,
+  getAuthenticatedTableIds,
   hasValidTableSession,
   isValidTableAccessCode,
+  removeTableSessionCookie,
 } from "@/lib/server/table-auth";
 
 type TableSessionRequestBody = {
@@ -18,11 +20,17 @@ type TableSessionRequestBody = {
  */
 export async function GET(request: NextRequest) {
   const tableId = request.nextUrl.searchParams.get("tableId");
-
-  return NextResponse.json({
-    authenticated: tableId ? hasValidTableSession(request, tableId) : false,
+  const authenticated = tableId ? hasValidTableSession(request, tableId) : false;
+  const response = NextResponse.json({
+    authenticated,
     tableId: getAuthenticatedTableId(request),
   });
+
+  if (authenticated && tableId) {
+    applyTableSessionCookie(response, tableId, getAuthenticatedTableIds(request));
+  }
+
+  return response;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,12 +56,19 @@ export async function POST(request: NextRequest) {
     authenticated: true,
     tableId,
   });
-  applyTableSessionCookie(response, tableId);
+  applyTableSessionCookie(response, tableId, getAuthenticatedTableIds(request));
   return response;
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  const tableId = request.nextUrl.searchParams.get("tableId");
   const response = NextResponse.json({ authenticated: false });
+
+  if (tableId) {
+    removeTableSessionCookie(response, tableId, getAuthenticatedTableIds(request));
+    return response;
+  }
+
   clearTableSessionCookie(response);
   return response;
 }

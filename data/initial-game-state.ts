@@ -14,6 +14,8 @@ export const createInitialGameState = (): GameState => ({
   revision: 0,
   eventName: "Trivia Evento",
   eventTagline: "Corporate Live Challenge",
+  publicScreenWidthPx: 1356,
+  publicScreenHeightPx: 768,
   totalRounds: mockQuestions.length,
   currentQuestionIndex: null,
   roundStatus: "idle",

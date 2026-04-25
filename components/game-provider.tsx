@@ -20,6 +20,8 @@ type GameActions = {
   revealQuestion: () => void;
   startRound: () => void;
   submitAnswer: (tableId: string, optionId: AnswerOptionId) => void;
+  setRoundDuration: (seconds: number) => void;
+  setPublicScreenSize: (widthPx: number, heightPx: number) => void;
   setTableName: (tableId: string, name: string) => void;
   setTableActive: (tableId: string, active: boolean) => void;
   setActiveTableCount: (count: number) => void;
@@ -129,6 +131,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     startRound: () => gameService.startRound(),
     submitAnswer: (tableId, optionId) =>
       gameService.submitAnswer(tableId, optionId, tableId),
+    setRoundDuration: (seconds) => gameService.setRoundDuration(seconds),
+    setPublicScreenSize: (widthPx, heightPx) =>
+      gameService.setPublicScreenSize(widthPx, heightPx),
     setTableName: (tableId, name) => gameService.setTableName(tableId, name),
     setTableActive: (tableId, active) =>
       gameService.setTableActive(tableId, active),

@@ -1,10 +1,12 @@
 import type { AnswerOptionId, Question, RoundStatus } from "@/types";
+import { TypewriterText } from "@/components/typewriter-text";
 
 type QuestionCardProps = {
   question: Question | null;
   roundStatus: RoundStatus;
   selectedOptionId?: AnswerOptionId | null;
   compact?: boolean;
+  onPromptAnimationComplete?: () => void;
 };
 
 export function QuestionCard({
@@ -12,6 +14,7 @@ export function QuestionCard({
   roundStatus,
   selectedOptionId,
   compact = false,
+  onPromptAnimationComplete,
 }: QuestionCardProps) {
   if (!question) {
     return (
@@ -43,8 +46,12 @@ export function QuestionCard({
           ) : null}
         </div>
 
-        <h2 className="max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-[-0.03em] text-foreground sm:text-[2.26rem]">
-          {question.prompt}
+        <h2 className="max-w-5xl text-[2.17rem] font-semibold leading-[1.08] tracking-[-0.03em] text-foreground sm:text-[2.43rem]">
+          <TypewriterText
+            text={question.prompt}
+            speedMs={20}
+            onComplete={onPromptAnimationComplete}
+          />
         </h2>
       </div>
     );
@@ -72,7 +79,11 @@ export function QuestionCard({
       <h2
         className="max-w-5xl text-[2rem] font-semibold leading-[1.04] tracking-[-0.04em] text-foreground sm:text-5xl xl:text-6xl"
       >
-        {question.prompt}
+        <TypewriterText
+          text={question.prompt}
+          speedMs={16}
+          onComplete={onPromptAnimationComplete}
+        />
       </h2>
     </div>
   );

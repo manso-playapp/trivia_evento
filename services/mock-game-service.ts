@@ -10,6 +10,8 @@ import {
   revealCorrectAnswer,
   revealQuestion,
   setActiveTableCount,
+  setPublicScreenSize,
+  setRoundDuration,
   setTableActive,
   setTableName,
   simulateAnswers,
@@ -188,6 +190,31 @@ export const mockGameService: GameService = {
     });
   },
 
+  setRoundDuration(seconds, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => setRoundDuration(state, seconds),
+      type: "round_duration_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        seconds,
+      },
+    });
+  },
+
+  setPublicScreenSize(widthPx, heightPx, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => setPublicScreenSize(state, widthPx, heightPx),
+      type: "public_screen_size_updated",
+      actorRole: "operator",
+      actorId,
+      payload: {
+        widthPx,
+        heightPx,
+      },
+    });
+  },
+
   lockRound(actorId = "operator") {
     commitLocalState({
       reducer: lockRound,
@@ -255,7 +282,7 @@ export const mockGameService: GameService = {
       actorId,
       payload: {
         tableId,
-        roundNumber: getCurrentRoundNumber(readStoredGameState()),
+        roundNumber: getCurrentRoundNumber(readStoredGameState()) + 1,
       },
     });
   },
@@ -311,6 +338,7 @@ export const mockGameService: GameService = {
   },
 
   resetGame(actorId = "operator") {
+    const currentState = readStoredGameState();
     const nextState = resetGame();
     const event = createGameEvent({
       gameId: nextState.gameId,
@@ -322,6 +350,8 @@ export const mockGameService: GameService = {
 
     writeStoredGameState({
       ...nextState,
+      publicScreenWidthPx: currentState.publicScreenWidthPx,
+      publicScreenHeightPx: currentState.publicScreenHeightPx,
       revision: 1,
       lastEvent: event,
     });

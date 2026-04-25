@@ -14,6 +14,8 @@ export type GameState = {
   revision: number;
   eventName: string;
   eventTagline: string;
+  publicScreenWidthPx: number;
+  publicScreenHeightPx: number;
   totalRounds: number;
   currentQuestionIndex: number | null;
   roundStatus: RoundStatus;

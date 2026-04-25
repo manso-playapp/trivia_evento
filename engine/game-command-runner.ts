@@ -8,6 +8,8 @@ import {
   revealCorrectAnswer,
   revealQuestion,
   setActiveTableCount,
+  setPublicScreenSize,
+  setRoundDuration,
   setTableActive,
   setTableName,
   simulateAnswers,
@@ -127,6 +129,37 @@ export const executeGameCommand = (
       };
     }
 
+    case "set_round_duration": {
+      const nextState = setRoundDuration(state, command.seconds);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "round_duration_updated",
+        payload: {
+          seconds: nextState.roundDurationSeconds,
+        },
+      };
+    }
+
+    case "set_public_screen_size": {
+      const nextState = setPublicScreenSize(
+        state,
+        command.widthPx,
+        command.heightPx
+      );
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "public_screen_size_updated",
+        payload: {
+          widthPx: nextState.publicScreenWidthPx,
+          heightPx: nextState.publicScreenHeightPx,
+        },
+      };
+    }
+
     case "lock_round": {
       const nextState = lockRound(state);
 
@@ -181,7 +214,7 @@ export const executeGameCommand = (
         eventType: "x2_activated",
         payload: {
           tableId: command.tableId,
-          roundNumber: getCurrentRoundNumber(state),
+          roundNumber: getCurrentRoundNumber(state) + 1,
         },
       };
     }
@@ -229,6 +262,8 @@ export const executeGameCommand = (
       const nextState = {
         ...resetGame(),
         gameId: state.gameId,
+        publicScreenWidthPx: state.publicScreenWidthPx,
+        publicScreenHeightPx: state.publicScreenHeightPx,
       };
 
       return {

@@ -15,9 +15,9 @@ const createOptions = (
 const questionSeeds = [
   {
     category: "Comercio Exterior",
-    prompt: "¿Qué documento se necesita para iniciar una importación o exportación?",
+    prompt: "Que documento se necesita para iniciar una importación o exportación?",
     options: [
-      "Declaración jurada",
+      "Declaracion jurada",
       "Factura proforma",
       "Packing list",
       "Remito",
@@ -26,7 +26,7 @@ const questionSeeds = [
   },
   {
     category: "Incoterms",
-    prompt: "¿Qué significa la condición FOB?",
+    prompt: "Que significa la condicion FOB?",
     options: [
       "Entrega en destino",
       "Libre a bordo",
@@ -37,7 +37,7 @@ const questionSeeds = [
   },
   {
     category: "Aduana",
-    prompt: "¿A qué organismo pertenece la DGA - Aduana?",
+    prompt: "A que organismo pertenece la DGA - Aduana?",
     options: [
       "ARCA",
       "ANMAT",
@@ -48,18 +48,18 @@ const questionSeeds = [
   },
   {
     category: "Transporte",
-    prompt: "¿Qué transporte es más rápido?",
+    prompt: "Que transporte es mas rapido?",
     options: [
-      "Marítimo",
+      "Maritimo",
       "Terrestre",
-      "Aéreo",
+      "Aereo",
       "Ferroviario",
     ] as [string, string, string, string],
     correctOptionId: "C" as AnswerOptionId,
   },
   {
-    category: "Documentación",
-    prompt: "¿Qué información se puede ver en el packing list?",
+    category: "Documentacion",
+    prompt: "Que información se puede ver en el packing list?",
     options: [
       "Precio",
       "Cantidades, pesos y tipo de bultos",
@@ -70,7 +70,7 @@ const questionSeeds = [
   },
   {
     category: "Incoterms",
-    prompt: "¿Cuál de estos Incoterms incluye seguro internacional?",
+    prompt: "Cual de estos Incoterms incluye seguro internacional?",
     options: [
       "EXW",
       "FOB",
@@ -81,10 +81,10 @@ const questionSeeds = [
   },
   {
     category: "Mercosur",
-    prompt: "¿Qué país no forma parte del Mercosur?",
+    prompt: "Que pais no forma parte del Mercosur?",
     options: [
       "Brasil",
-      "Perú",
+      "Peru",
       "Paraguay",
       "Uruguay",
     ] as [string, string, string, string],
@@ -92,7 +92,7 @@ const questionSeeds = [
   },
   {
     category: "Origen",
-    prompt: "¿Qué documento prueba el origen de la mercadería?",
+    prompt: "Que documento prueba el origen de la mercaderia?",
     options: [
       "BL",
       "AWB",
@@ -103,9 +103,9 @@ const questionSeeds = [
   },
   {
     category: "Incoterms",
-    prompt: "¿Qué significa EXW?",
+    prompt: "Que significa EXW?",
     options: [
-      "Entrega en fábrica",
+      "Entrega en fabrica",
       "Entrega en puerto",
       "Entrega con seguro",
       "Entrega urgente",
@@ -114,10 +114,10 @@ const questionSeeds = [
   },
   {
     category: "Transporte",
-    prompt: "¿Qué medio de transporte usa como contrato el BL?",
+    prompt: "Que medio de transporte usa como contrato el BL?",
     options: [
-      "Aéreo",
-      "Marítimo",
+      "Aereo",
+      "Maritimo",
       "Terrestre",
       "Multimodal",
     ] as [string, string, string, string],
@@ -125,18 +125,18 @@ const questionSeeds = [
   },
   {
     category: "DMF",
-    prompt: "¿Quién es el encargado del área de exportaciones en DMF?",
+    prompt: "Quién es el encargado del area exportaciones en DMF?",
     options: [
       "Flor",
       "Nico",
       "Diego",
-      "Andrés",
+      "Andres",
     ] as [string, string, string, string],
     correctOptionId: "D" as AnswerOptionId,
   },
   {
     category: "Argentina",
-    prompt: "¿Cuál es el principal destino de las exportaciones argentinas?",
+    prompt: "Cual es el principal destino de las exportaciones argentinas?",
     options: [
       "Brasil",
       "Alemania",
@@ -147,20 +147,20 @@ const questionSeeds = [
   },
   {
     category: "Aduana",
-    prompt: "¿Qué es un despachante?",
+    prompt: "Que es un despachante?",
     options: [
       "Transportista",
       "Intermediario aduanero",
-      "Un charlatán",
+      "Un charlatan",
       "Proveedor",
     ] as [string, string, string, string],
     correctOptionId: "B" as AnswerOptionId,
   },
   {
     category: "Monedas",
-    prompt: "¿Qué país usa la moneda yuan?",
+    prompt: "Que pais usa la moneda yuan?",
     options: [
-      "Japón",
+      "Japon",
       "India",
       "Corea",
       "China",
@@ -169,7 +169,7 @@ const questionSeeds = [
   },
   {
     category: "Puertos",
-    prompt: "¿Qué puerto europeo mueve más de 14 millones de contenedores al año?",
+    prompt: "Que puerto europeo mueve mas de 14 millones de contenedores al ano?",
     options: [
       "Hamburgo",
       "Amberes-Brujas",
@@ -180,7 +180,7 @@ const questionSeeds = [
   },
   {
     category: "DMF",
-    prompt: "¿Cómo le decimos en la oficina a la camioneta ploteada de DMF?",
+    prompt: "Como le decimos en la oficina a la camioneta ploteada de DMF?",
     options: [
       "Demefeta",
       "Aduaneta",
@@ -191,7 +191,7 @@ const questionSeeds = [
   },
   {
     category: "Mercosur",
-    prompt: "¿Cuándo entra en vigencia el Acuerdo Mercosur-Unión Europea?",
+    prompt: "Cuando entra en vigencia el Acuerdo Mercosur-Union Europea?",
     options: [
       "1 de mayo de 2026",
       "1 de mayo de 2027",
@@ -202,7 +202,7 @@ const questionSeeds = [
   },
   {
     category: "DMF",
-    prompt: "¿Cuántas personas formamos parte de DMF?",
+    prompt: "Cuantas personas formamos parte de DMF?",
     options: [
       "5",
       "20",
@@ -213,7 +213,7 @@ const questionSeeds = [
   },
   {
     category: "Incoterms",
-    prompt: "¿Cuál de estos Incoterms incluye flete y seguro?",
+    prompt: "Cual de estos Incoterms incluye flete y seguro?",
     options: [
       "FCA",
       "FOB",
@@ -225,7 +225,7 @@ const questionSeeds = [
   {
     category: "DMF",
     prompt:
-      "¿Cuál es la frase que siempre repite Diego al hablar de lo que es el comercio exterior en Argentina?",
+      "Cual es la frase que siempre repite Diego al hablar de lo que es el comercio exterior en Argentina?",
     options: [
       "Fumar en la garrafa",
       "Meter los dedos en el enchufe",

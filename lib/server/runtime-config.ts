@@ -9,6 +9,7 @@ export const serverRuntimeConfig = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   supabaseGameId: process.env.NEXT_PUBLIC_SUPABASE_GAME_ID ?? "trivia-evento-mvp",
   operatorApiToken: process.env.TRIVIA_OPERATOR_API_TOKEN ?? "",
+  operatorAuthEnabled: process.env.TRIVIA_OPERATOR_AUTH_ENABLED === "true",
   gameAutomationMode:
     process.env.NEXT_PUBLIC_GAME_AUTOMATION_MODE ?? "hybrid",
   revealDelayMs: Number(process.env.TRIVIA_REVEAL_DELAY_MS ?? "2500"),

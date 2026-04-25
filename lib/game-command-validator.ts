@@ -69,6 +69,32 @@ export const parseGameCommand = (input: unknown): GameCommand | null => {
 
       return null;
 
+    case "set_round_duration":
+      if (typeof input.seconds === "number" && Number.isInteger(input.seconds)) {
+        return {
+          type: "set_round_duration",
+          seconds: input.seconds,
+        };
+      }
+
+      return null;
+
+    case "set_public_screen_size":
+      if (
+        typeof input.widthPx === "number" &&
+        Number.isInteger(input.widthPx) &&
+        typeof input.heightPx === "number" &&
+        Number.isInteger(input.heightPx)
+      ) {
+        return {
+          type: "set_public_screen_size",
+          widthPx: input.widthPx,
+          heightPx: input.heightPx,
+        };
+      }
+
+      return null;
+
     case "activate_x2":
       if (typeof input.tableId === "string") {
         return { type: "activate_x2", tableId: input.tableId };

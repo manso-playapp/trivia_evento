@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users } from "lucide-react";
+import { Minus, Plus, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { Table } from "@/types";
@@ -14,8 +14,6 @@ type TableRosterManagerProps = {
   onSetActiveTableCount: (count: number) => void;
 };
 
-const quickCounts = [8, 10, 12, 16, 20];
-
 export function TableRosterManager({
   tables,
   disabled = false,
@@ -24,6 +22,8 @@ export function TableRosterManager({
   onSetActiveTableCount,
 }: TableRosterManagerProps) {
   const activeCount = tables.filter((table) => table.active).length;
+  const minTableCount = 1;
+  const maxTableCount = tables.length;
   const [editedNamesByTableId, setEditedNamesByTableId] = useState<
     Record<string, string>
   >({});
@@ -36,36 +36,49 @@ export function TableRosterManager({
           Configuracion de mesas
         </p>
         <p className="mt-2">
-          Defini que mesas participan en este evento. Conviene hacerlo con la
-          partida en espera para no alterar un juego ya empezado.
+          Defini que mesas participan en este evento. La cantidad solo se puede
+          cambiar antes de empezar la partida.
         </p>
         <p className="mt-3 text-xs uppercase tracking-[0.18em] text-foreground/80">
           {activeCount}/{tables.length} mesas activas
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"
-          variant={activeCount === 2 ? "default" : "outline"}
-          className="h-10 justify-center"
-          disabled={disabled}
-          onClick={() => onSetActiveTableCount(2)}
+          variant="outline"
+          className="size-11 p-0"
+          disabled={disabled || activeCount <= minTableCount}
+          aria-label="Quitar una mesa"
+          title="Quitar una mesa"
+          onClick={() =>
+            onSetActiveTableCount(Math.max(minTableCount, activeCount - 1))
+          }
         >
-          Plantilla 2 mesas
+          <Minus className="size-4" />
         </Button>
-        {quickCounts.map((count) => (
-          <Button
-            key={count}
-            type="button"
-            variant={activeCount === count ? "default" : "outline"}
-            className="h-10 justify-center"
-            disabled={disabled}
-            onClick={() => onSetActiveTableCount(count)}
-          >
-            {count} mesas
-          </Button>
-        ))}
+        <div className="min-w-36 border border-border/70 bg-[#2d333d] px-4 py-2.5 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Mesas
+          </p>
+          <p className="text-2xl font-semibold leading-none text-foreground">
+            {activeCount}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="size-11 p-0"
+          disabled={disabled || activeCount >= maxTableCount}
+          aria-label="Agregar una mesa"
+          title="Agregar una mesa"
+          onClick={() =>
+            onSetActiveTableCount(Math.min(maxTableCount, activeCount + 1))
+          }
+        >
+          <Plus className="size-4" />
+        </Button>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">

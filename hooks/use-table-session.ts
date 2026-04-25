@@ -95,7 +95,7 @@ export const useTableSession = (tableId: string): TableSessionState => {
     setLoading(true);
 
     try {
-      await fetch("/api/table/session", {
+      await fetch(`/api/table/session?tableId=${encodeURIComponent(tableId)}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -104,7 +104,7 @@ export const useTableSession = (tableId: string): TableSessionState => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tableId]);
 
   return {
     authenticated,

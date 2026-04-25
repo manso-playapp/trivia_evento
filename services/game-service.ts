@@ -25,6 +25,8 @@ export interface GameService {
     optionId: AnswerOptionId,
     actorId?: string
   ): void;
+  setRoundDuration(seconds: number, actorId?: string): void;
+  setPublicScreenSize(widthPx: number, heightPx: number, actorId?: string): void;
   setTableName(tableId: string, name: string, actorId?: string): void;
   setTableActive(tableId: string, active: boolean, actorId?: string): void;
   setActiveTableCount(count: number, actorId?: string): void;

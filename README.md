@@ -23,7 +23,7 @@ Abrir `http://localhost:3000`.
 
 ## Como funciona este MVP
 
-- Usa mocks locales para 20 mesas y 14 preguntas.
+- Usa mocks locales para 20 mesas y 20 preguntas.
 - El estado del juego vive en `localStorage`.
 - Si abrís varias pestañas, `screen`, `operator` y `play` se sincronizan localmente.
 
@@ -42,6 +42,7 @@ NEXT_PUBLIC_SUPABASE_GAME_ID=trivia-evento-mvp
 NEXT_PUBLIC_APP_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...
 TRIVIA_OPERATOR_API_TOKEN=...
+TRIVIA_OPERATOR_AUTH_ENABLED=false
 ```
 
 3. Ejecutar `supabase/schema.sql` en el SQL Editor del proyecto
@@ -49,7 +50,8 @@ TRIVIA_OPERATOR_API_TOKEN=...
 
 Mientras no actives esa variable, la app sigue usando mocks locales.
 Si queres mover writes criticas a backend, cambia `NEXT_PUBLIC_GAME_WRITE_MODE=server`.
-En ese modo, `/operator` requiere iniciar sesion con el token configurado en `TRIVIA_OPERATOR_API_TOKEN`.
+En ese modo, `/operator` solo requiere iniciar sesion si activas
+`TRIVIA_OPERATOR_AUTH_ENABLED=true` y configuras `TRIVIA_OPERATOR_API_TOKEN`.
 Las mesas tambien validan un codigo simple por equipo:
 
 - Mesa 1 => `1001`

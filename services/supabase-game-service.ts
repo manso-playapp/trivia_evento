@@ -12,6 +12,8 @@ import {
   revealCorrectAnswer,
   revealQuestion,
   setActiveTableCount,
+  setPublicScreenSize,
+  setRoundDuration,
   setTableActive,
   setTableName,
   simulateAnswers,
@@ -246,52 +248,54 @@ async function commitServerCommand({
   command: import("@/types").GameCommand;
   actorId: string;
 }) {
-  const response = await fetch("/api/game/command", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      command,
-      actorId,
-      expectedRevision: cachedState.revision,
-    }),
-  });
+  const maxAttempts = 3;
 
-  if (!response.ok) {
-    let message = "No se pudo ejecutar el comando en backend.";
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const response = await fetch("/api/game/command", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        command,
+        actorId,
+        expectedRevision: cachedState.revision,
+      }),
+    });
 
-    try {
-      const body = (await response.json()) as {
-        error?: string;
-        state?: GameState;
-        conflict?: boolean;
-      };
-      message = body.error ?? message;
+    const body = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      state?: GameState;
+      ignored?: boolean;
+      conflict?: boolean;
+    };
 
-      if (body.state) {
-        setCachedState(body.state);
-      } else if (body.conflict) {
-        await pullRemoteState();
-      }
-    } catch {
-      // noop
+    if (body.state) {
+      setCachedState(body.state);
     }
 
-    throw new Error(message);
+    if (response.ok) {
+      if (!body.state) {
+        await pullRemoteState();
+      }
+      return;
+    }
+
+    if (body.conflict || response.status === 409) {
+      if (!body.state) {
+        await pullRemoteState();
+      }
+
+      if (attempt < maxAttempts) {
+        continue;
+      }
+
+      return;
+    }
+
+    throw new Error(body.error ?? "No se pudo ejecutar el comando en backend.");
   }
-
-  const body = (await response.json()) as {
-    state?: GameState;
-    ignored?: boolean;
-  };
-
-  if (body.state) {
-    setCachedState(body.state);
-    return;
-  }
-
-  await pullRemoteState();
 }
 
 export const createSupabaseGameService = (): GameService => ({
@@ -462,6 +466,51 @@ export const createSupabaseGameService = (): GameService => ({
     });
   },
 
+  setRoundDuration(seconds, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "set_round_duration", seconds },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => setRoundDuration(state, seconds),
+      type: "round_duration_updated",
+      actorRole: "operator",
+      actorId,
+      payload: (_currentState, nextState) => ({
+        seconds: nextState.roundDurationSeconds,
+      }),
+    });
+  },
+
+  setPublicScreenSize(widthPx, heightPx, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "set_public_screen_size", widthPx, heightPx },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => setPublicScreenSize(state, widthPx, heightPx),
+      type: "public_screen_size_updated",
+      actorRole: "operator",
+      actorId,
+      payload: (_currentState, nextState) => ({
+        widthPx: nextState.publicScreenWidthPx,
+        heightPx: nextState.publicScreenHeightPx,
+      }),
+    });
+  },
+
   lockRound(actorId = "operator") {
     if (shouldUseServerWrites) {
       void commitServerCommand({
@@ -555,7 +604,7 @@ export const createSupabaseGameService = (): GameService => ({
       actorId,
       payload: (currentState) => ({
         tableId,
-        roundNumber: getCurrentRoundNumber(currentState),
+        roundNumber: getCurrentRoundNumber(currentState) + 1,
       }),
     });
   },
@@ -629,9 +678,11 @@ export const createSupabaseGameService = (): GameService => ({
     }
 
     void commitRemoteState({
-      reducer: () => ({
+      reducer: (state) => ({
         ...resetGame(),
         gameId: runtimeConfig.supabaseGameId,
+        publicScreenWidthPx: state.publicScreenWidthPx,
+        publicScreenHeightPx: state.publicScreenHeightPx,
       }),
       type: "game_reset",
       actorRole: "operator",

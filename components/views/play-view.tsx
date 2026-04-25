@@ -5,8 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Clock3, Crown, DoorOpen, Snowflake, XCircle } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
+import { CompanyLogo } from "@/components/company-logo";
 import {
   getCurrentSubmittedAnswer,
+  getPowerUp,
   isTableActive,
   isTableFrozenForCurrentRound,
 } from "@/engine/game-selectors";
@@ -17,6 +19,7 @@ import { SuccessConfetti } from "@/components/success-confetti";
 import { useGameView } from "@/hooks/use-game-view";
 import { useTableSession } from "@/hooks/use-table-session";
 import { TableAuthPanel } from "@/components/table-auth-panel";
+import { TypewriterText } from "@/components/typewriter-text";
 
 export function PlayView({ tableId }: { tableId: string }) {
   const { state, actions, currentQuestion, currentRoundNumber } = useGameView();
@@ -89,6 +92,28 @@ export function PlayView({ tableId }: { tableId: string }) {
   const questionOrder = currentQuestion?.order ?? Math.max(currentRoundNumber, 1);
   const totalQuestionCount = state.questions.length || state.totalRounds;
   const tableLabel = table.name;
+  const powerUpNoticeRoundNumber =
+    state.roundStatus === "score_updated"
+      ? currentRoundNumber + 1
+      : currentRoundNumber;
+  const x2PowerUp = getPowerUp(table, "x2");
+  const hasActiveX2 =
+    x2PowerUp?.status === "armed" &&
+    x2PowerUp.armedForRound === powerUpNoticeRoundNumber;
+  const incomingBombSourceTable = state.tables.find((sourceTable) => {
+    const bomb = getPowerUp(sourceTable, "bomb");
+
+    return (
+      sourceTable.active &&
+      bomb?.status === "armed" &&
+      bomb.armedForRound === powerUpNoticeRoundNumber &&
+      bomb.targetTableId === table.id
+    );
+  });
+  const bombSourceTable = table.frozenByTableId
+    ? state.tables.find((entry) => entry.id === table.frozenByTableId)
+    : incomingBombSourceTable;
+  const hasBombNotice = isFrozen || Boolean(incomingBombSourceTable);
   const isTimeFinished = [
     "round_locked",
     "answer_revealed",
@@ -129,6 +154,100 @@ export function PlayView({ tableId }: { tableId: string }) {
     );
   }
 
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-[#343a43] px-3 py-4 sm:py-6">
+        <main className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[430px] flex-col px-5 py-5 sm:min-h-[calc(100vh-3rem)]">
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="inline-flex size-9 items-center justify-center rounded-[0.8rem] bg-[#2d333d] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)] transition-colors hover:text-foreground"
+              aria-label="Cambiar mesa"
+            >
+              <DoorOpen className="size-4" />
+            </button>
+            <div className="inline-flex items-center gap-2 rounded-[0.8rem] bg-[#2d333d] px-3 py-2 text-xs font-semibold tracking-[0.08em] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)]">
+              <Crown className="size-3.5 text-accent" />
+              {tableLabel}
+            </div>
+          </div>
+
+          <section className="flex flex-1 flex-col items-center justify-center pb-12 text-center">
+            <CompanyLogo
+              priority
+              className="mb-8 h-20 w-[260px]"
+              imageClassName="object-center"
+              sizes="260px"
+            />
+            <p className="text-[1.85rem] font-semibold leading-tight text-foreground">
+              {tableLabel}
+            </p>
+            <p className="mt-3 max-w-[300px] text-[1.12rem] leading-snug text-foreground/82">
+              Registrada correctamente.
+            </p>
+            <p className="mt-7 max-w-[310px] text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              Esperando la primera pregunta
+            </p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (state.roundStatus === "score_updated") {
+    return (
+      <div className="min-h-screen bg-[#343a43] px-3 py-4 sm:py-6">
+        <main className="mx-auto w-full max-w-[430px] px-5 py-5">
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="inline-flex size-9 items-center justify-center rounded-[0.8rem] bg-[#2d333d] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)] transition-colors hover:text-foreground"
+              aria-label="Cambiar mesa"
+            >
+              <DoorOpen className="size-4" />
+            </button>
+            <div className="inline-flex items-center gap-2 rounded-[0.8rem] bg-[#2d333d] px-3 py-2 text-xs font-semibold tracking-[0.08em] text-muted-foreground shadow-[0_8px_18px_rgba(0,0,0,0.33)]">
+              <Crown className="size-3.5 text-accent" />
+              {tableLabel}
+            </div>
+          </div>
+
+          <section className="pt-20 text-center">
+            <p className="text-[1.85rem] font-semibold leading-tight text-foreground">
+              Preparando proxima ronda
+            </p>
+            <p className="mx-auto mt-3 max-w-[300px] text-[1.02rem] leading-snug text-foreground/76">
+              Atentos a los comodines antes de la siguiente pregunta.
+            </p>
+          </section>
+
+          {hasActiveX2 ? (
+            <div className="mt-8 rounded-[1rem] bg-cyan-300/12 px-4 py-3 text-cyan-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+              <p className="text-[1rem] font-semibold">X2 activo</p>
+              <p className="mt-1 text-[0.9rem] leading-snug text-cyan-100/82">
+                Si responden bien, duplican los puntos de la proxima ronda.
+              </p>
+            </div>
+          ) : null}
+
+          {hasBombNotice ? (
+            <div className="mt-4 rounded-[1rem] bg-danger/16 px-4 py-3 text-danger shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+              <p className="flex items-center gap-2 text-[1rem] font-semibold">
+                <Snowflake className="size-4" />
+                Bomba de {bombSourceTable?.name ?? "otra mesa"}
+              </p>
+              <p className="mt-1 text-[0.9rem] leading-snug text-danger/85">
+                No pueden responder la proxima ronda.
+              </p>
+            </div>
+          ) : null}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#343a43] px-3 py-4 sm:py-6">
       <main className="mx-auto w-full max-w-[430px] px-5 py-5">
@@ -158,14 +277,31 @@ export function PlayView({ tableId }: { tableId: string }) {
         </div>
 
         <p className="mx-auto mt-4 max-w-[320px] text-center text-[1.32rem] leading-[1.4] text-foreground/88">
-          {currentQuestion?.prompt ?? "Esperando la próxima pregunta..."}
+          <TypewriterText
+            text={currentQuestion?.prompt ?? "Esperando la próxima pregunta..."}
+            speedMs={20}
+          />
         </p>
 
-        {isFrozen ? (
-          <div className="mt-4 rounded-[1rem] bg-warning/14 px-4 py-3 text-warning shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+        {hasActiveX2 ? (
+          <div className="mt-4 rounded-[1rem] bg-cyan-300/12 px-4 py-3 text-cyan-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+            <p className="text-[1rem] font-semibold">
+              X2 activo
+            </p>
+            <p className="mt-1 text-[0.9rem] leading-snug text-cyan-100/82">
+              Si responden bien, duplican los puntos de esta ronda.
+            </p>
+          </div>
+        ) : null}
+
+        {hasBombNotice ? (
+          <div className="mt-4 rounded-[1rem] bg-danger/16 px-4 py-3 text-danger shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
             <p className="flex items-center gap-2 text-[1rem] font-semibold">
               <Snowflake className="size-4" />
-              Mesa congelada por BOMBA
+              Bomba de {bombSourceTable?.name ?? "otra mesa"}
+            </p>
+            <p className="mt-1 text-[0.9rem] leading-snug text-danger/85">
+              No pueden responder esta ronda.
             </p>
           </div>
         ) : null}

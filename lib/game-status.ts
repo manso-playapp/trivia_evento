@@ -14,8 +14,8 @@ export const roundStatusMeta: Record<
     tone: "neutral",
   },
   question_revealed: {
-    label: "Pregunta visible",
-    description: "La audiencia ya ve la pregunta; falta abrir respuestas.",
+    label: "Transicion",
+    description: "Estado legado entre pregunta y ronda. Ya no deberia durar visible.",
     tone: "accent",
   },
   round_active: {

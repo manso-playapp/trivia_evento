@@ -1,6 +1,5 @@
-import { Trophy } from "lucide-react";
+import { Clock3, Trophy } from "lucide-react";
 
-import { CompanyLogo } from "@/components/company-logo";
 import { StatusBadge } from "@/components/status-badge";
 
 type EventHeaderProps = {
@@ -10,6 +9,7 @@ type EventHeaderProps = {
   totalRounds: number;
   statusLabel: string;
   statusTone: "neutral" | "accent" | "success" | "warning" | "danger";
+  roundDurationSeconds?: number;
 };
 
 export function EventHeader({
@@ -19,15 +19,15 @@ export function EventHeader({
   totalRounds,
   statusLabel,
   statusTone,
+  roundDurationSeconds,
 }: EventHeaderProps) {
   return (
     <div className="broadcast-panel relative overflow-hidden px-5 py-5 sm:px-7 sm:py-6">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/8" />
-      <div className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr] xl:items-end">
+      <div className="grid gap-6 2xl:grid-cols-[1fr_0.95fr] 2xl:items-end">
         <div className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start gap-3">
             <p className="broadcast-label text-accent">{eventTagline}</p>
-            <CompanyLogo className="h-10 w-[190px] sm:h-11 sm:w-[210px]" />
           </div>
           <div>
             <h1 className="max-w-4xl text-3xl font-semibold leading-none tracking-[-0.04em] text-foreground sm:text-5xl xl:text-6xl">
@@ -39,8 +39,12 @@ export function EventHeader({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:justify-self-end">
-          <div className="broadcast-panel-soft min-w-40 px-4 py-4">
+        <div
+          className={`grid gap-4 2xl:justify-self-end ${
+            roundDurationSeconds ? "sm:grid-cols-3" : "sm:grid-cols-2"
+          }`}
+        >
+          <div className="broadcast-panel-soft min-w-48 px-5 py-5">
             <p className="broadcast-label">Ronda</p>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               {currentRoundNumber}
@@ -52,7 +56,7 @@ export function EventHeader({
               Secuencia principal del juego
             </p>
           </div>
-          <div className="broadcast-panel-soft min-w-40 px-4 py-4">
+          <div className="broadcast-panel-soft min-w-48 px-5 py-5">
             <p className="mb-3 flex items-center gap-2 broadcast-label">
               <Trophy className="size-3.5 text-accent" />
               Estado
@@ -62,6 +66,23 @@ export function EventHeader({
               Referencia comun para operador, screen y mobile
             </p>
           </div>
+          {roundDurationSeconds ? (
+            <div className="broadcast-panel-soft min-w-48 px-5 py-5">
+              <p className="mb-3 flex items-center gap-2 broadcast-label">
+                <Clock3 className="size-3.5 text-accent" />
+                Timer
+              </p>
+              <p className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                {roundDurationSeconds}
+                <span className="ml-1 text-lg text-muted-foreground sm:text-xl">
+                  s
+                </span>
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Duracion configurada para la proxima ronda
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -19,7 +19,7 @@ const safeEqual = (left: string, right: string) => {
 };
 
 export const hasOperatorAuthConfigured = Boolean(
-  serverRuntimeConfig.operatorApiToken
+  serverRuntimeConfig.operatorAuthEnabled && serverRuntimeConfig.operatorApiToken
 );
 
 export const isOperatorCommand = (command: GameCommand) =>

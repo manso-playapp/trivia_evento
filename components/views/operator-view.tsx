@@ -52,6 +52,7 @@ export function OperatorView() {
         totalRounds={state.totalRounds}
         statusLabel={statusMeta.label}
         statusTone={statusMeta.tone}
+        roundDurationSeconds={state.roundDurationSeconds}
       />
 
       {operatorSession.enabled && !operatorSession.authenticated ? (
@@ -88,10 +89,11 @@ export function OperatorView() {
           sessionLoading={operatorSession.loading}
           onSignOut={operatorSession.enabled ? operatorSession.signOut : undefined}
           onRevealQuestion={actions.revealQuestion}
-          onStartRound={actions.startRound}
           onLockRound={actions.lockRound}
           onRevealAnswer={actions.revealCorrectAnswer}
           onApplyScore={actions.applyScores}
+          onSetRoundDuration={actions.setRoundDuration}
+          onSetPublicScreenSize={actions.setPublicScreenSize}
           onSimulateAnswers={actions.simulateAnswers}
           onResetGame={actions.resetGame}
           onActivateX2={actions.activateX2}
@@ -142,7 +144,7 @@ export function OperatorView() {
           tables={state.tables}
           disabled={
             (operatorSession.enabled && !operatorSession.authenticated) ||
-            !["idle", "game_finished"].includes(state.roundStatus)
+            state.roundStatus !== "idle"
           }
           onSetTableName={actions.setTableName}
           onSetTableActive={actions.setTableActive}

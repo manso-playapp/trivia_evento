@@ -16,7 +16,8 @@ import type {
   Table,
 } from "@/types";
 
-const POINTS_PER_CORRECT = 100;
+const POINTS_PER_CORRECT = 25;
+export const MIN_POWER_UP_ROUND = 1;
 
 const stampState = (state: GameState): GameState => ({
   ...state,
@@ -30,11 +31,14 @@ const updateTable = (
 ) =>
   tables.map((table) => (table.id === tableId ? updater(table) : table));
 
-const canChangeRoster = (state: GameState) =>
-  state.roundStatus === "idle" || state.roundStatus === "game_finished";
+const canChangeRoster = (state: GameState) => state.roundStatus === "idle";
 
 const normalizeTableName = (name: string) =>
   name.trim().replace(/\s+/g, " ").slice(0, 40);
+const clampRoundDurationSeconds = (seconds: number) =>
+  Math.max(10, Math.min(120, seconds));
+const clampPublicScreenPixels = (pixels: number) =>
+  Math.max(320, Math.min(7680, pixels));
 
 const resetTableSetupState = (table: Table, active: boolean): Table => ({
   ...table,
@@ -128,6 +132,48 @@ export const setActiveTableCount = (state: GameState, count: number): GameState 
   });
 };
 
+export const setRoundDuration = (
+  state: GameState,
+  seconds: number
+): GameState => {
+  if (state.roundStatus === "round_active") {
+    return state;
+  }
+
+  const nextSeconds = clampRoundDurationSeconds(seconds);
+
+  if (nextSeconds === state.roundDurationSeconds) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    roundDurationSeconds: nextSeconds,
+  });
+};
+
+export const setPublicScreenSize = (
+  state: GameState,
+  widthPx: number,
+  heightPx: number
+): GameState => {
+  const nextWidthPx = clampPublicScreenPixels(widthPx);
+  const nextHeightPx = clampPublicScreenPixels(heightPx);
+
+  if (
+    nextWidthPx === state.publicScreenWidthPx &&
+    nextHeightPx === state.publicScreenHeightPx
+  ) {
+    return state;
+  }
+
+  return stampState({
+    ...state,
+    publicScreenWidthPx: nextWidthPx,
+    publicScreenHeightPx: nextHeightPx,
+  });
+};
+
 /**
  * Paso interno del dominio.
  * En modo realtime real, el servidor deberia aplicar este freeze antes de abrir
@@ -217,12 +263,14 @@ export const revealQuestion = (state: GameState): GameState => {
     });
   }
 
-  return stampState({
+  const nextState = {
     ...state,
     currentQuestionIndex: nextIndex,
-    roundStatus: "question_revealed",
+    roundStatus: "question_revealed" as const,
     roundEndsAt: null,
-  });
+  };
+
+  return startRound(nextState);
 };
 
 export const startRound = (state: GameState): GameState => {
@@ -242,7 +290,7 @@ export const startRound = (state: GameState): GameState => {
     ...stateWithFreeze,
     roundStatus: "round_active",
     roundEndsAt: new Date(
-      Date.now() + question.timeLimitSeconds * 1000
+      Date.now() + state.roundDurationSeconds * 1000
     ).toISOString(),
   });
 };
@@ -331,13 +379,12 @@ export const revealCorrectAnswer = (state: GameState): GameState => {
 };
 
 export const activateX2 = (state: GameState, tableId: string): GameState => {
-  const roundNumber = getCurrentRoundNumber(state);
+  const targetRoundNumber = getCurrentRoundNumber(state) + 1;
 
   if (
-    roundNumber < 7 ||
-    !["question_revealed", "round_active", "round_locked"].includes(
-      state.roundStatus
-    )
+    targetRoundNumber < MIN_POWER_UP_ROUND ||
+    targetRoundNumber > state.totalRounds ||
+    state.roundStatus !== "score_updated"
   ) {
     return state;
   }
@@ -355,7 +402,7 @@ export const activateX2 = (state: GameState, tableId: string): GameState => {
           ? {
               ...powerUp,
               status: "armed",
-              armedForRound: roundNumber,
+              armedForRound: targetRoundNumber,
             }
           : powerUp
       ),
@@ -368,14 +415,13 @@ export const activateBomb = (
   sourceTableId: string,
   targetTableId: string
 ): GameState => {
-  const roundNumber = getCurrentRoundNumber(state);
+  const targetRoundNumber = getCurrentRoundNumber(state) + 1;
 
   if (
-    roundNumber < 7 ||
-    roundNumber >= state.totalRounds ||
+    targetRoundNumber < MIN_POWER_UP_ROUND ||
+    targetRoundNumber > state.totalRounds ||
     sourceTableId === targetTableId ||
-    state.roundStatus === "idle" ||
-    state.roundStatus === "game_finished"
+    state.roundStatus !== "score_updated"
   ) {
     return state;
   }
@@ -395,7 +441,7 @@ export const activateBomb = (
           ? {
               ...powerUp,
               status: "armed",
-              armedForRound: roundNumber + 1,
+              armedForRound: targetRoundNumber,
               targetTableId,
             }
           : powerUp

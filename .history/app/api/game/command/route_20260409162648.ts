@@ -6,10 +6,7 @@ import {
   hasValidOperatorSession,
   isOperatorCommand,
 } from "@/lib/server/operator-auth";
-import {
-  applyTableSessionCookie,
-  hasValidTableSession,
-} from "@/lib/server/table-auth";
+import { hasValidTableSession } from "@/lib/server/table-auth";
 import {
   hasSupabaseAdminCredentials,
   serverRuntimeConfig,
@@ -147,16 +144,10 @@ export async function POST(request: NextRequest) {
       expectedRevision: currentState.revision,
     });
 
-    const response = NextResponse.json({
+    return NextResponse.json({
       state: nextState,
       ignored: false,
     });
-
-    if (command.type === "submit_answer") {
-      applyTableSessionCookie(response, command.tableId);
-    }
-
-    return response;
   } catch (error) {
     if (error instanceof GameStateConflictError) {
       return NextResponse.json(

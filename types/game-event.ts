@@ -5,6 +5,8 @@ export type GameEventType =
   | "round_started"
   | "answer_submitted"
   | "table_activity_updated"
+  | "round_duration_updated"
+  | "public_screen_size_updated"
   | "round_locked"
   | "correct_answer_revealed"
   | "scores_applied"
