@@ -75,6 +75,27 @@ begin
   end if;
 end $$;
 
+-- Tabla de respuestas separada del snapshot para evitar conflictos de revision
+-- entre mesas concurrentes. Ver migrations/002_submitted_answers.sql.
+create table if not exists public.submitted_answers (
+  game_id      text    not null references public.game_sessions(id) on delete cascade,
+  table_id     text    not null,
+  question_id  text    not null,
+  round_number integer not null,
+  option_id    text    not null,
+  updated_at   timestamptz not null default now(),
+  primary key (game_id, table_id, round_number)
+);
+
+alter table public.submitted_answers enable row level security;
+
+drop policy if exists "anon_read_submitted_answers" on public.submitted_answers;
+create policy "anon_read_submitted_answers"
+  on public.submitted_answers
+  for select
+  to anon
+  using (true);
+
 do $$
 begin
   if not exists (
@@ -85,5 +106,18 @@ begin
       and tablename = 'game_events'
   ) then
     alter publication supabase_realtime add table public.game_events;
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'submitted_answers'
+  ) then
+    alter publication supabase_realtime add table public.submitted_answers;
   end if;
 end $$;

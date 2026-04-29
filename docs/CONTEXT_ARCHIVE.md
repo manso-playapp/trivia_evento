@@ -197,3 +197,31 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - Se forzo refresh de logo por nombre de archivo versionado: branding ahora usa `public/branding/company-logo-v3.png`.
 - Esto evita cache stale de `next/image` cuando se reemplaza el logo con el mismo nombre.
 ```
+
+
+<!-- context-entry -->
+
+## Snapshot 2026-04-29T21:18:27.358Z
+
+- release: 0.7.0
+- changed_files: 9
+- head_commit: 4a9886f Release: nueva versión — referencia 050ece8
+
+```md
+# Handoff Context
+
+- generated_at: 2026-04-29T21:18:27.358Z
+- release_version: 0.7.0
+- release_date: 2026-04-29
+- source_changelog: docs/CHANGELOG.md
+- source_context: docs/PROJECT_CONTEXT.md
+
+## Compressed Context
+
+Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El estado del juego esta modelado como snapshot unico con `revision` y `lastEvent`. Hoy puede correr en modo mock local o en modo Supabase con writes por backend (`server`).
+
+## Latest Functional Changes
+
+- Se agrego tabla `submitted_answers` en Supabase con clave primaria
+- El endpoint `/api/game/command` para `submit_answer` ahora hace un upsert
+```

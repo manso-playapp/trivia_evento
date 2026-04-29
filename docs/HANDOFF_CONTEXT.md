@@ -1,8 +1,8 @@
 # Handoff Context
 
-- generated_at: 2026-04-25T21:44:12.817Z
-- release_version: 0.6.33
-- release_date: 2026-04-18
+- generated_at: 2026-04-29T21:18:27.358Z
+- release_version: 0.7.0
+- release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
 - source_context: docs/PROJECT_CONTEXT.md
 
@@ -12,44 +12,28 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Latest Functional Changes
 
-- Se forzo refresh de logo por nombre de archivo versionado: branding ahora usa `public/branding/company-logo-v3.png`.
-- Esto evita cache stale de `next/image` cuando se reemplaza el logo con el mismo nombre.
+- Se agrego tabla `submitted_answers` en Supabase con clave primaria
+- El endpoint `/api/game/command` para `submit_answer` ahora hace un upsert
+- `readOrSeedServerGameState` lee `submitted_answers` en paralelo y mergea las
+- Se agrego `clearSubmittedAnswersForGame` que se dispara al hacer `reset_game`
+- En modo `server`, `submitAnswer` aplica el reducer localmente antes de hacer
+- Si el POST falla, se hace `pullRemoteState()` para revertir al estado real.
+- En modo `server`, el servicio de cliente abre un canal Realtime en
+- Cada respuesta entrante se mergea en el estado local sin tocar el resto del
 
 ## Working Tree Snapshot
 
-- M  app/globals.css
-- M  components/answer-options-board.tsx
-- M  components/game-provider.tsx
-- M  components/mobile-round-timer.tsx
-- M  components/operator-controls.tsx
-- M  components/question-card.tsx
-- M  components/ranking-board.tsx
-- M  components/success-confetti.tsx
-- M  components/table-card.tsx
-- M  components/table-grid.tsx
-- M  components/timer-display.tsx
-- M  components/typewriter-text.tsx
-- M  components/views/operator-view.tsx
-- M  components/views/play-view.tsx
-- M  components/views/screen-view.tsx
-- M  data/README.md
-- A  data/default-sound-settings.ts
-- M  data/initial-game-state.ts
-- M  data/mock-questions.ts
-- M  docs/thread-checkpoint.md
-- M  docs/thread-todo.md
-- M  engine/game-command-runner.ts
-- M  engine/game-domain.ts
-- M  engine/game-selectors.ts
-- M  eslint.config.mjs
-- M  hooks/use-game-view.ts
-- M  lib/game-command-validator.ts
-- A  lib/screen-sounds.ts
-- A  public/sounds/juego.mp3
-- A  public/sounds/ronda.mp3
+- M  app/api/game/command/route.ts
+- M  docs/CHANGELOG.md
+- A  docs/incident-2026-04-26-lag-respuestas.md
+- M  lib/server/game-session-store.ts
+- M  services/supabase-game-service.ts
+- A  supabase/migrations/002_submitted_answers.sql
+- M  supabase/schema.sql
 
 ## Recent Commits
 
+- 4a9886f Release: nueva versión — referencia 050ece8
 - 050ece8 feat: comprehensive update to game components, services, and new features
 - ace0586 chore: update branding logo asset and screen header sizing
 - 5af88e7 feat: polish broadcast UI, mobile timer, branding and screen layout
@@ -76,7 +60,7 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 ## Prompt For New Thread
 
 ```text
-Continuar Trivia Evento desde version 0.6.33.
+Continuar Trivia Evento desde version 0.7.0.
 Revisar docs/CHANGELOG.md, docs/PROJECT_CONTEXT.md y docs/HANDOFF_CONTEXT.md.
 Usar engine/services actuales y no romper el flujo operator/screen/play.
 ```

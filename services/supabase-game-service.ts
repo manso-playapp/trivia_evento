@@ -36,13 +36,28 @@ import {
   type GameService,
   type GameServiceListener,
 } from "@/services/game-service";
-import type { GameActorRole, GameEvent, GameState } from "@/types";
+import type {
+  AnswerOptionId,
+  GameActorRole,
+  GameEvent,
+  GameState,
+  SubmittedAnswer,
+} from "@/types";
 
 type SessionRow = {
   id: string;
   revision: number;
   state: GameState;
   last_event: GameEvent | null;
+  updated_at: string;
+};
+
+type SubmittedAnswerRow = {
+  game_id: string;
+  table_id: string;
+  question_id: string;
+  round_number: number;
+  option_id: string;
   updated_at: string;
 };
 
@@ -55,6 +70,7 @@ type CommitPayload =
 
 const listeners = new Set<GameServiceListener>();
 let realtimeChannel: RealtimeChannel | null = null;
+let answersRealtimeChannel: RealtimeChannel | null = null;
 let initialized = false;
 let cachedState: GameState = createConfiguredInitialState();
 
@@ -111,8 +127,82 @@ function toEventRow(event: GameEvent, revision: number) {
   };
 }
 
+function rowToSubmittedAnswer(row: SubmittedAnswerRow): SubmittedAnswer {
+  return {
+    tableId: row.table_id,
+    questionId: row.question_id,
+    roundNumber: row.round_number,
+    optionId: row.option_id as AnswerOptionId,
+    updatedAt: row.updated_at,
+    locked: false,
+  };
+}
+
+/**
+ * Mergea una respuesta entrante en cachedState.submittedAnswers.
+ * Reemplaza si ya existe una para esa mesa/ronda, agrega si es nueva.
+ */
+function mergeIncomingAnswer(answer: SubmittedAnswer) {
+  const existing = cachedState.submittedAnswers.findIndex(
+    (a) => a.tableId === answer.tableId && a.roundNumber === answer.roundNumber
+  );
+
+  const nextAnswers =
+    existing === -1
+      ? [...cachedState.submittedAnswers, answer]
+      : cachedState.submittedAnswers.map((a, i) =>
+          i === existing ? answer : a
+        );
+
+  cachedState = { ...cachedState, submittedAnswers: nextAnswers };
+  writeStoredGameState(cachedState);
+  notifyListeners();
+}
+
 async function pullRemoteState() {
   const supabase = getSupabaseBrowserClient();
+
+  if (shouldUseServerWrites) {
+    const [sessionResult, answersResult] = await Promise.all([
+      supabase
+        .from("game_sessions")
+        .select("id, revision, state, last_event, updated_at")
+        .eq("id", runtimeConfig.supabaseGameId)
+        .maybeSingle(),
+      supabase
+        .from("submitted_answers")
+        .select("game_id, table_id, question_id, round_number, option_id, updated_at")
+        .eq("game_id", runtimeConfig.supabaseGameId),
+    ]);
+
+    if (sessionResult.error) {
+      console.error(
+        "Supabase: no se pudo leer el snapshot del juego.",
+        sessionResult.error
+      );
+      return;
+    }
+
+    const { data } = sessionResult;
+    const submittedAnswers = (answersResult.data ?? []).map((row) =>
+      rowToSubmittedAnswer(row as SubmittedAnswerRow)
+    );
+
+    if (!data) {
+      const seededState = createConfiguredInitialState();
+      await supabase.from("game_sessions").upsert(toSessionRow(seededState));
+      setCachedState({ ...seededState, submittedAnswers });
+      return;
+    }
+
+    setCachedState({
+      ...normalizeStateFromRow(data as SessionRow),
+      submittedAnswers,
+    });
+    return;
+  }
+
+  // Modo direct: las respuestas vienen dentro del snapshot de game_sessions.
   const { data, error } = await supabase
     .from("game_sessions")
     .select("id, revision, state, last_event, updated_at")
@@ -163,7 +253,16 @@ function ensureRealtimeChannel() {
           return;
         }
 
-        setCachedState(nextState);
+        // En modo server: el snapshot puede no tener las respuestas actuales
+        // (submit_answer ya no las escribe ahí). Preservar las que tenemos en cache.
+        if (shouldUseServerWrites) {
+          setCachedState({
+            ...nextState,
+            submittedAnswers: cachedState.submittedAnswers,
+          });
+        } else {
+          setCachedState(nextState);
+        }
       }
     )
     .subscribe((status) => {
@@ -171,6 +270,40 @@ function ensureRealtimeChannel() {
         void pullRemoteState();
       }
     });
+}
+
+/**
+ * Canal Realtime exclusivo para submitted_answers.
+ * Solo activo en modo server. Cada fila de respuesta llega individualmente
+ * y se mergea en el estado local sin tocar el resto del snapshot.
+ */
+function ensureAnswersRealtimeChannel() {
+  if (answersRealtimeChannel) {
+    return;
+  }
+
+  const supabase = getSupabaseBrowserClient();
+  answersRealtimeChannel = supabase
+    .channel(`submitted-answers-${runtimeConfig.supabaseGameId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "submitted_answers",
+        filter: `game_id=eq.${runtimeConfig.supabaseGameId}`,
+      },
+      (payload) => {
+        const row = payload.new as SubmittedAnswerRow | undefined;
+
+        if (!row?.table_id) {
+          return;
+        }
+
+        mergeIncomingAnswer(rowToSubmittedAnswer(row));
+      }
+    )
+    .subscribe();
 }
 
 async function commitRemoteState({
@@ -211,15 +344,6 @@ async function commitRemoteState({
     lastEvent: event,
   };
 
-  /**
-   * Modo actual:
-   * - optimista en cliente para no frenar la UI
-   * - sincronizado por snapshot en Supabase
-   *
-   * Produccion:
-   * - estas transiciones deberian ejecutarse del lado servidor
-   * - la escritura deberia validar `revision` para evitar carreras
-   */
   setCachedState(nextState);
 
   const supabase = getSupabaseBrowserClient();
@@ -273,7 +397,14 @@ async function commitServerCommand({
     };
 
     if (body.state) {
-      setCachedState(body.state);
+      // Preservar las respuestas que ya tenemos en cache: el snapshot del servidor
+      // puede no incluirlas si submit_answer usa la tabla separada.
+      setCachedState({
+        ...body.state,
+        submittedAnswers: shouldUseServerWrites
+          ? cachedState.submittedAnswers
+          : body.state.submittedAnswers,
+      });
     }
 
     if (response.ok) {
@@ -299,6 +430,36 @@ async function commitServerCommand({
   }
 }
 
+/**
+ * Fast path para submit_answer en modo server.
+ * No envía expectedRevision ni reintenta: el upsert del servidor es atómico
+ * por (game_id, table_id, round_number) y no compite con otras mesas.
+ */
+async function commitSubmitAnswerCommand({
+  tableId,
+  optionId,
+  actorId,
+}: {
+  tableId: string;
+  optionId: string;
+  actorId: string;
+}) {
+  const response = await fetch("/api/game/command", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      command: { type: "submit_answer", tableId, optionId },
+      actorId,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "No se pudo registrar la respuesta.");
+  }
+}
+
 export const createSupabaseGameService = (): GameService => ({
   initialize() {
     if (initialized) {
@@ -315,6 +476,10 @@ export const createSupabaseGameService = (): GameService => ({
 
     void pullRemoteState();
     ensureRealtimeChannel();
+
+    if (shouldUseServerWrites) {
+      ensureAnswersRealtimeChannel();
+    }
   },
 
   readState() {
@@ -377,12 +542,20 @@ export const createSupabaseGameService = (): GameService => ({
 
   submitAnswer(tableId, optionId, actorId = tableId) {
     if (shouldUseServerWrites) {
-      void commitServerCommand({
-        command: { type: "submit_answer", tableId, optionId },
-        actorId,
-      }).catch((error) => {
-        console.error("Supabase backend write error:", error);
-      });
+      // Optimistic update: el botón se muestra seleccionado inmediatamente,
+      // sin esperar el round-trip al servidor.
+      const optimisticState = submitAnswer(cachedState, tableId, optionId);
+      if (optimisticState !== cachedState) {
+        setCachedState(optimisticState);
+      }
+
+      void commitSubmitAnswerCommand({ tableId, optionId, actorId }).catch(
+        (error) => {
+          console.error("Supabase backend write error (submit_answer):", error);
+          // Revertir al estado real del servidor si el POST falla.
+          void pullRemoteState();
+        }
+      );
       return;
     }
 

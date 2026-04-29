@@ -3,6 +3,38 @@
 Registro de cambios del proyecto. Este archivo es la fuente de verdad para la
 version visible en admin.
 
+## [0.7.0] - 2026-04-29
+
+### Fix: respuestas concurrentes sin conflictos de revision
+
+- Se agrego tabla `submitted_answers` en Supabase con clave primaria
+  `(game_id, table_id, round_number)`. Ver `supabase/migrations/002_submitted_answers.sql`.
+- El endpoint `/api/game/command` para `submit_answer` ahora hace un upsert
+  atomico en `submitted_answers` en lugar de actualizar el snapshot de `game_sessions`.
+  Esto elimina la cascada de conflictos de revision entre mesas concurrentes.
+- `readOrSeedServerGameState` lee `submitted_answers` en paralelo y mergea las
+  respuestas en el estado antes de pasarlo a los reducers del dominio (lockRound,
+  applyScores siguen funcionando igual).
+- Se agrego `clearSubmittedAnswersForGame` que se dispara al hacer `reset_game`
+  para evitar que respuestas de una partida anterior aparezcan en la siguiente.
+
+### Fix: optimistic update en submit_answer (modo server)
+
+- En modo `server`, `submitAnswer` aplica el reducer localmente antes de hacer
+  el POST. El boton de respuesta se ve seleccionado de inmediato sin esperar
+  el round-trip al servidor.
+- Si el POST falla, se hace `pullRemoteState()` para revertir al estado real.
+
+### Fix: canal Realtime separado para respuestas
+
+- En modo `server`, el servicio de cliente abre un canal Realtime en
+  `submitted_answers` ademas del canal de `game_sessions`.
+- Cada respuesta entrante se mergea en el estado local sin tocar el resto del
+  snapshot. Las otras vistas (screen, operator) ven las respuestas en tiempo real.
+- El canal de `game_sessions` preserva las respuestas del cache local cuando
+  llega un update del operador (el snapshot del servidor no las incluye durante
+  `round_active`).
+
 ## [0.6.33] - 2026-04-18
 - Se forzo refresh de logo por nombre de archivo versionado: branding ahora usa `public/branding/company-logo-v3.png`.
 - Esto evita cache stale de `next/image` cuando se reemplaza el logo con el mismo nombre.

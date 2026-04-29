@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { executeGameCommand } from "@/engine/game-command-runner";
+import { getCurrentQuestion, getCurrentRoundNumber } from "@/engine/game-selectors";
 import { parseGameCommand } from "@/lib/game-command-validator";
 import {
   hasOperatorAuthConfigured,
@@ -8,16 +9,18 @@ import {
 } from "@/lib/server/operator-auth";
 import {
   applyTableSessionCookie,
-  hasValidTableSession,
+  getAuthenticatedTableId,
 } from "@/lib/server/table-auth";
 import {
   hasSupabaseAdminCredentials,
   serverRuntimeConfig,
 } from "@/lib/server/runtime-config";
 import {
+  clearSubmittedAnswersForGame,
   GameStateConflictError,
   persistServerGameTransition,
   readOrSeedServerGameState,
+  upsertSubmittedAnswer,
 } from "@/lib/server/game-session-store";
 import { createGameEvent } from "@/services/game-service";
 
@@ -37,19 +40,6 @@ const parseExpectedRevision = (value: unknown) =>
     ? value
     : null;
 
-/**
- * Backend-for-frontend del juego.
- *
- * En esta etapa:
- * - recibe comandos serializables desde el cliente
- * - aplica la regla de dominio en servidor
- * - persiste snapshot + evento en Supabase
- *
- * Proximo paso productivo:
- * - validar `revision` en una transaccion o RPC
- * - autenticar operador y mesas
- * - mover timers automáticos al backend
- */
 export async function POST(request: NextRequest) {
   if (!hasSupabaseAdminCredentials) {
     return NextResponse.json(
@@ -88,7 +78,12 @@ export async function POST(request: NextRequest) {
   }
 
   if (command.type === "submit_answer") {
-    if (!hasValidTableSession(request, command.tableId)) {
+    // La cookie httpOnly es la fuente de verdad del tableId.
+    // Ignoramos command.tableId del body para que un cliente no pueda votar
+    // por otra mesa aunque tenga una sesión válida para varias.
+    const sessionTableId = getAuthenticatedTableId(request);
+
+    if (!sessionTableId) {
       return NextResponse.json(
         {
           error: "Sesion valida de mesa requerida para responder.",
@@ -96,6 +91,46 @@ export async function POST(request: NextRequest) {
         },
         { status: 401 }
       );
+    }
+
+    // Fast path: no revision system, upsert atomico por (game_id, table_id, round_number).
+    // Cada mesa tiene su propia fila → no hay conflictos entre mesas concurrentes.
+    try {
+      const currentState = await readOrSeedServerGameState(
+        serverRuntimeConfig.supabaseGameId
+      );
+
+      if (currentState.roundStatus !== "round_active") {
+        return NextResponse.json({ ignored: true });
+      }
+
+      const question = getCurrentQuestion(currentState);
+
+      if (!question) {
+        return NextResponse.json({ ignored: true });
+      }
+
+      const table = currentState.tables.find((t) => t.id === sessionTableId);
+
+      if (!table?.active) {
+        return NextResponse.json({ ignored: true });
+      }
+
+      await upsertSubmittedAnswer({
+        gameId: serverRuntimeConfig.supabaseGameId,
+        tableId: sessionTableId,
+        questionId: question.id,
+        roundNumber: getCurrentRoundNumber(currentState),
+        optionId: command.optionId,
+      });
+
+      const response = NextResponse.json({ success: true });
+      applyTableSessionCookie(response, sessionTableId);
+      return response;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al guardar respuesta.";
+      return NextResponse.json({ error: message }, { status: 500 });
     }
   }
 
@@ -141,22 +176,22 @@ export async function POST(request: NextRequest) {
       lastEvent: event,
     };
 
+    // Limpiar answers antes de persistir el reset: si falla el clear,
+    // el comando entero falla y el state no queda reseteado con huérfanas.
+    if (command.type === "reset_game") {
+      await clearSubmittedAnswersForGame(serverRuntimeConfig.supabaseGameId);
+    }
+
     await persistServerGameTransition({
       state: nextState,
       event,
       expectedRevision: currentState.revision,
     });
 
-    const response = NextResponse.json({
+    return NextResponse.json({
       state: nextState,
       ignored: false,
     });
-
-    if (command.type === "submit_answer") {
-      applyTableSessionCookie(response, command.tableId);
-    }
-
-    return response;
   } catch (error) {
     if (error instanceof GameStateConflictError) {
       return NextResponse.json(
