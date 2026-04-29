@@ -307,7 +307,7 @@ export function OperatorControls({
                   onSetSoundSettings({ [control.key]: event.target.checked })
                 }
                 disabled={disabled}
-                className="size-5 accent-[var(--accent)]"
+                className="size-5 accent-accent"
               />
             </label>
           ))}
@@ -336,7 +336,7 @@ export function OperatorControls({
                 })
               }
               disabled={disabled}
-              className="w-full accent-[var(--accent)]"
+              className="w-full accent-accent"
             />
           </label>
 
@@ -362,7 +362,7 @@ export function OperatorControls({
                 })
               }
               disabled={disabled}
-              className="w-full accent-[var(--accent)]"
+              className="w-full accent-accent"
             />
           </label>
         </div>

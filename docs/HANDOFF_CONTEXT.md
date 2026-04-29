@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-04-29T22:00:58.432Z
+- generated_at: 2026-04-29T22:06:18.680Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -23,10 +23,12 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
+- M  components/operator-controls.tsx
 - M  components/views/screen-view.tsx
 
 ## Recent Commits
 
+- 06bb39e fix: ronda.mp3 no sonaba durante preguntas activas
 - 0f6103f docs: registrar decisiones y pendientes de sesión 2026-04-29
 - 52366a1 fix: eliminar lag y pérdida de respuestas con 20 mesas concurrentes
 - 4a9886f Release: nueva versión — referencia 050ece8
@@ -36,7 +38,6 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - e7974d8 feat: compact broadcast screen 1356x768 and fix qr hydration
 - 03e3308 feat: table roster naming and automatic context checkpoints
 - d841b46 feat: add table qr access
-- 0fae8bd feat: launch trivia evento MVP
 
 ## Handoff Checklist
 

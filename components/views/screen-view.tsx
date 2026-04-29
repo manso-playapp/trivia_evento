@@ -201,7 +201,7 @@ function FinalScreen({
 
       <div className="flex items-center justify-between">
         <CompanyLogo
-          className="h-16 w-[400px]"
+          className="h-16 w-100"
           imageClassName="object-left"
           sizes="400px"
           priority
@@ -366,7 +366,7 @@ export function ScreenView() {
             <div className="flex min-h-0 flex-col pr-1">
               <div className="flex items-center justify-start pb-2 pt-4 text-left">
                 <CompanyLogo
-                  className="h-16 w-[400px]"
+                  className="h-16 w-100"
                   imageClassName="object-left"
                   sizes="400px"
                   priority
