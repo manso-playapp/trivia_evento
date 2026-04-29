@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-04-29T21:18:27.358Z
+- generated_at: 2026-04-29T21:45:38.670Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -8,7 +8,7 @@
 
 ## Compressed Context
 
-Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El estado del juego esta modelado como snapshot unico con `revision` y `lastEvent`. Hoy puede correr en modo mock local o en modo Supabase con writes por backend (`server`).
+Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El estado del juego esta modelado como snapshot unico con `revision` y `lastEvent`. Hoy puede correr en modo mock local o en modo Supabase con writes por backend (`server`). Las respuestas de las mesas viven en una tabla separada `submitted_answers` (PK compuesto `game_id, table_id, round_number`) para evitar conflictos de revision entre mesas concurrentes. El snapshot de `game_sessions` sigue siendo la fuente de verdad del flujo del juego.
 
 ## Latest Functional Changes
 
@@ -23,16 +23,12 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- M  app/api/game/command/route.ts
-- M  docs/CHANGELOG.md
-- A  docs/incident-2026-04-26-lag-respuestas.md
-- M  lib/server/game-session-store.ts
-- M  services/supabase-game-service.ts
-- A  supabase/migrations/002_submitted_answers.sql
-- M  supabase/schema.sql
+- M  docs/PROJECT_CONTEXT.md
+- A  docs/session-2026-04-29-fixes-incidente.md
 
 ## Recent Commits
 
+- 52366a1 fix: eliminar lag y pérdida de respuestas con 20 mesas concurrentes
 - 4a9886f Release: nueva versión — referencia 050ece8
 - 050ece8 feat: comprehensive update to game components, services, and new features
 - ace0586 chore: update branding logo asset and screen header sizing
@@ -42,20 +38,21 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - d841b46 feat: add table qr access
 - 0fae8bd feat: launch trivia evento MVP
 - 5902b8e feat: initial commit
-- 0207c0e Initial commit from Create Next App
 
 ## Handoff Checklist
 
 - Confirmar version activa leyendo `docs/CHANGELOG.md`.
 - Leer `## Estado actual` y `## Riesgos abiertos` en este archivo.
+- Leer `docs/session-2026-04-29-fixes-incidente.md` para contexto del incidente.
 - Verificar `npm run lint` y `npm run build` antes de seguir cambios.
 - Si hay secreto expuesto en chat, rotarlo antes de deploy.
 
 ## Open Risks
 
 - Falta auth fuerte por usuario real para operador y mesas.
-- Falta mover toda logica critica a backend transaccional/RPC.
-- Falta scheduler de baja latencia para juego en produccion.
+- Falta mover logica critica a RPC/transaccion atomica en Supabase.
+- Falta scheduler de baja latencia para timers en produccion.
+- `submitted_answers` no tiene policy de INSERT/UPDATE para anon: las escrituras
 
 ## Prompt For New Thread
 
