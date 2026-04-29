@@ -286,7 +286,7 @@ export function ScreenView() {
 
       unlockScreenSounds();
       setGameActiveSound(gameIsActive && !roundIsActive);
-      setRoundSound(false);
+      setRoundSound(roundIsActive);
     };
 
     window.addEventListener("pointerdown", unlock);
@@ -306,7 +306,7 @@ export function ScreenView() {
     const roundIsActive = state.roundStatus === "round_active";
 
     setGameActiveSound(gameIsActive && !roundIsActive);
-    setRoundSound(false);
+    setRoundSound(roundIsActive);
 
     return () => {
       stopScreenLoopSounds();

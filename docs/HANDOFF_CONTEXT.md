@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-04-29T21:45:38.670Z
+- generated_at: 2026-04-29T22:00:58.432Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -23,11 +23,11 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- M  docs/PROJECT_CONTEXT.md
-- A  docs/session-2026-04-29-fixes-incidente.md
+- M  components/views/screen-view.tsx
 
 ## Recent Commits
 
+- 0f6103f docs: registrar decisiones y pendientes de sesión 2026-04-29
 - 52366a1 fix: eliminar lag y pérdida de respuestas con 20 mesas concurrentes
 - 4a9886f Release: nueva versión — referencia 050ece8
 - 050ece8 feat: comprehensive update to game components, services, and new features
@@ -37,7 +37,6 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - 03e3308 feat: table roster naming and automatic context checkpoints
 - d841b46 feat: add table qr access
 - 0fae8bd feat: launch trivia evento MVP
-- 5902b8e feat: initial commit
 
 ## Handoff Checklist
 
