@@ -97,8 +97,9 @@ export function OperatorView() {
           onSetSoundSettings={actions.setSoundSettings}
           onSimulateAnswers={actions.simulateAnswers}
           onResetGame={actions.resetGame}
-          onActivateX2={actions.activateX2}
-          onScheduleBomb={actions.activateBomb}
+          onEnablePowerUps={actions.enablePowerUps}
+          onAdjustScore={actions.adjustScore}
+          onRestorePowerUp={actions.restorePowerUp}
         />
       </div>
 

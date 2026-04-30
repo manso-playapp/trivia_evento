@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { BookOpenText, CircleAlert, RefreshCcw, Tag } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 type ProjectMetaResponse = {
   release: {
@@ -32,8 +31,6 @@ export function VersionContextPanel() {
   const [meta, setMeta] = useState<ProjectMetaResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [checkpointLoading, setCheckpointLoading] = useState(false);
-
   const loadMeta = async (controller?: AbortController) => {
     setLoading(true);
 
@@ -77,31 +74,6 @@ export function VersionContextPanel() {
     };
   }, []);
 
-  const runCheckpoint = async () => {
-    setCheckpointLoading(true);
-
-    try {
-      const response = await fetch("/api/meta/context/checkpoint", {
-        method: "POST",
-      });
-      const body = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(body.error ?? "No se pudo refrescar el checkpoint.");
-      }
-
-      await loadMeta();
-    } catch (checkpointError) {
-      setError(
-        checkpointError instanceof Error
-          ? checkpointError.message
-          : "No se pudo refrescar el checkpoint."
-      );
-    } finally {
-      setCheckpointLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="broadcast-panel-soft p-4 text-sm text-muted-foreground">
@@ -135,15 +107,6 @@ export function VersionContextPanel() {
           {" | "}
           Handoff generated: {meta.handoff.generatedAt ?? "pendiente"}
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-4 h-10 justify-center"
-          onClick={() => void runCheckpoint()}
-          disabled={checkpointLoading}
-        >
-          {checkpointLoading ? "Actualizando..." : "Actualizar checkpoint ahora"}
-        </Button>
       </div>
 
       <div className="broadcast-panel-soft rounded-[0.95rem] p-4">

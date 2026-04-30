@@ -7,6 +7,7 @@ const DEFAULT_ROUND_DURATION_SECONDS = Number(
 );
 const DEFAULT_ANSWER_DELAY_MS = Number(process.env.TRIVIA_ANSWER_DELAY_MS ?? "80");
 const DEFAULT_BETWEEN_ROUNDS_MS = Number(process.env.TRIVIA_BETWEEN_ROUNDS_MS ?? "5000");
+const DEFAULT_ENABLE_POWER_UPS = process.env.TRIVIA_ENABLE_POWER_UPS === "true";
 
 const args = new Map();
 
@@ -30,6 +31,7 @@ const betweenRoundsMs = Number(
 );
 const randomCorrect = args.get("random-correct") === "true";
 const randomPowerUps = args.get("random-power-ups") === "true";
+const enablePowerUps = args.get("enable-power-ups") === "true" || DEFAULT_ENABLE_POWER_UPS;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const sample = (items) => items[Math.floor(Math.random() * items.length)];
@@ -189,60 +191,49 @@ const hasAvailablePowerUp = (table, type) =>
   table.powerUps.some((powerUp) => powerUp.type === type && powerUp.status === "available");
 
 const maybeActivateRandomPowerUps = async (state, round) => {
-  if (!randomPowerUps || round >= state.totalRounds) {
-    return {
-      state,
-      x2TableName: null,
-      bombLabel: null,
-    };
+  if (!randomPowerUps || !enablePowerUps || round >= state.totalRounds) {
+    return { state, x2TableName: null, bombLabel: null };
   }
 
   let nextState = state;
   let x2TableName = null;
   let bombLabel = null;
   const activeTables = nextState.tables.filter((table) => table.active);
-  const x2Candidates = activeTables.filter((table) => hasAvailablePowerUp(table, "x2"));
 
+  // X2: la propia mesa activa su comodin
+  const x2Candidates = activeTables.filter((table) => hasAvailablePowerUp(table, "x2"));
   if (x2Candidates.length > 0 && Math.random() < 0.55) {
     const x2Table = sample(x2Candidates);
+    const tableClient = tables.find((t) => t.id === x2Table.id)?.client ?? operator;
     nextState = await command(
-      operator,
+      tableClient,
       { type: "activate_x2", tableId: x2Table.id },
-      "operator-random-powerup"
+      x2Table.id
     );
     x2TableName = x2Table.name;
   }
 
+  // Bomba: la mesa origen elige y lanza contra otra mesa
   const bombSourceCandidates = nextState.tables
-    .filter((table) => table.active)
-    .filter((table) => hasAvailablePowerUp(table, "bomb"));
-
+    .filter((table) => table.active && hasAvailablePowerUp(table, "bomb"));
   if (bombSourceCandidates.length > 0 && Math.random() < 0.45) {
     const sourceTable = sample(bombSourceCandidates);
     const targetCandidates = nextState.tables.filter(
       (table) => table.active && table.id !== sourceTable.id
     );
-
     if (targetCandidates.length > 0) {
       const targetTable = sample(targetCandidates);
+      const sourceClient = tables.find((t) => t.id === sourceTable.id)?.client ?? operator;
       nextState = await command(
-        operator,
-        {
-          type: "activate_bomb",
-          sourceTableId: sourceTable.id,
-          targetTableId: targetTable.id,
-        },
-        "operator-random-powerup"
+        sourceClient,
+        { type: "activate_bomb", sourceTableId: sourceTable.id, targetTableId: targetTable.id },
+        sourceTable.id
       );
       bombLabel = `${sourceTable.name} -> ${targetTable.name}`;
     }
   }
 
-  return {
-    state: nextState,
-    x2TableName,
-    bombLabel,
-  };
+  return { state: nextState, x2TableName, bombLabel };
 };
 
 const authenticateTables = async () => {
@@ -271,16 +262,18 @@ const main = async () => {
   console.log(`Timer por ronda: ${roundDurationSeconds}s`);
   console.log(`Espera entre rondas: ${(betweenRoundsMs / 1000).toFixed(1)}s`);
   console.log(`Correctas aleatorias: ${randomCorrect ? "si" : "no"}`);
-  console.log(`Comodines aleatorios: ${randomPowerUps ? "si" : "no"}`);
+  console.log(`Comodines: ${enablePowerUps ? (randomPowerUps ? "activados + aleatorios" : "activados") : "desactivados"}`);
 
   await authenticateTables();
   console.log("Mesas autenticadas.");
 
   await command(operator, { type: "reset_game" });
-  await command(operator, {
-    type: "set_round_duration",
-    seconds: roundDurationSeconds,
-  });
+  await command(operator, { type: "set_round_duration", seconds: roundDurationSeconds });
+
+  if (enablePowerUps) {
+    await command(operator, { type: "enable_power_ups" });
+    console.log("Comodines activados.");
+  }
 
   let state = await getState();
   const totalRounds = state.totalRounds;

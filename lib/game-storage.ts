@@ -20,7 +20,12 @@ export const readStoredGameState = (): GameState => {
   }
 
   try {
-    return JSON.parse(rawState) as GameState;
+    const parsed = JSON.parse(rawState) as GameState;
+    return {
+      ...parsed,
+      powerUpsEnabled: parsed.powerUpsEnabled ?? false,
+      scoreAdjustments: parsed.scoreAdjustments ?? [],
+    };
   } catch {
     return initialGameState;
   }

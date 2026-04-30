@@ -1,6 +1,6 @@
 # Project Context
 
-- context_updated_at: 2026-04-29
+- context_updated_at: 2026-04-30
 - context_owner: docs/PROJECT_CONTEXT.md
 - changelog_source: docs/CHANGELOG.md
 

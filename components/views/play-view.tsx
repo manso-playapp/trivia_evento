@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, Clock3, Crown, DoorOpen, Snowflake, XCircle } from "lucide-react";
+import { Bomb, CheckCircle2, Clock3, Crown, DoorOpen, Snowflake, Sparkles, XCircle, Zap } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { CompanyLogo } from "@/components/company-logo";
@@ -43,6 +43,8 @@ export function PlayView({ tableId }: { tableId: string }) {
   const searchParams = useSearchParams();
   const accessCodeFromQuery = searchParams.get("code");
   const attemptedAutoAccessCode = useRef<string | null>(null);
+  const otherActiveTables = state.tables.filter((t) => t.active && t.id !== tableId);
+  const [bombTargetId, setBombTargetId] = useState(otherActiveTables[0]?.id ?? "");
 
   useEffect(() => {
     if (authenticated) {
@@ -308,6 +310,85 @@ export function PlayView({ tableId }: { tableId: string }) {
               <p className="mt-1 text-[0.9rem] leading-snug text-danger/85">
                 No pueden responder la proxima ronda.
               </p>
+            </div>
+          ) : null}
+
+          {state.powerUpsEnabled && isTiebreakerEligible ? (
+            <div className="mt-8 space-y-3">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                <Sparkles className="size-3.5" />
+                Comodines
+              </p>
+
+              {x2PowerUp?.status === "available" ? (
+                <button
+                  type="button"
+                  onClick={() => actions.activateX2(table.id)}
+                  className="flex w-full items-center gap-3 rounded-[1rem] bg-cyan-300/10 px-4 py-3 text-left text-cyan-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)] transition-colors hover:bg-cyan-300/18 active:scale-[0.98]"
+                >
+                  <Zap className="size-5 shrink-0" />
+                  <span>
+                    <span className="block text-[1rem] font-semibold">Usar X2</span>
+                    <span className="block text-[0.85rem] leading-snug text-cyan-100/76">
+                      Duplica tus puntos si acertais la proxima ronda.
+                    </span>
+                  </span>
+                </button>
+              ) : x2PowerUp?.status === "armed" ? (
+                <div className="rounded-[1rem] bg-cyan-300/10 px-4 py-3 text-cyan-100/60">
+                  <p className="text-[0.9rem]">X2 ya activado para la proxima ronda.</p>
+                </div>
+              ) : x2PowerUp?.status === "spent" ? (
+                <div className="rounded-[1rem] bg-[#2d333d] px-4 py-3 text-muted-foreground">
+                  <p className="text-[0.9rem]">X2 ya utilizado.</p>
+                </div>
+              ) : null}
+
+              {(() => {
+                const bomb = getPowerUp(table, "bomb");
+                if (!bomb || bomb.status === "spent") {
+                  return bomb?.status === "spent" ? (
+                    <div className="rounded-[1rem] bg-[#2d333d] px-4 py-3 text-muted-foreground">
+                      <p className="text-[0.9rem]">Bomba ya utilizada.</p>
+                    </div>
+                  ) : null;
+                }
+                if (bomb.status === "armed") {
+                  return (
+                    <div className="rounded-[1rem] bg-danger/12 px-4 py-3 text-danger/70">
+                      <p className="text-[0.9rem]">Bomba ya lanzada para la proxima ronda.</p>
+                    </div>
+                  );
+                }
+                return otherActiveTables.length > 0 ? (
+                  <div className="rounded-[1rem] bg-danger/10 px-4 py-3 shadow-[0_10px_22px_rgba(0,0,0,0.24)]">
+                    <p className="mb-2 flex items-center gap-2 text-[1rem] font-semibold text-danger">
+                      <Bomb className="size-5 shrink-0" />
+                      Lanzar bomba
+                    </p>
+                    <p className="mb-3 text-[0.85rem] leading-snug text-danger/76">
+                      Congela a otra mesa: no podra responder la proxima ronda.
+                    </p>
+                    <select
+                      value={bombTargetId}
+                      onChange={(e) => setBombTargetId(e.target.value)}
+                      className="mb-3 w-full rounded-[0.75rem] border border-danger/30 bg-[#2d333d] px-3 py-2 text-sm text-foreground"
+                    >
+                      {otherActiveTables.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => actions.activateBomb(table.id, bombTargetId)}
+                      disabled={!bombTargetId}
+                      className="w-full rounded-[0.75rem] bg-danger/20 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger/30 disabled:opacity-50"
+                    >
+                      Confirmar bomba
+                    </button>
+                  </div>
+                ) : null;
+              })()}
             </div>
           ) : null}
         </main>

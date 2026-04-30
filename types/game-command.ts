@@ -1,4 +1,5 @@
 import type { AnswerOptionId } from "@/types/answer-option";
+import type { PowerUpType } from "@/types/power-up";
 import type { SoundSettings } from "@/types/sound-settings";
 
 /**
@@ -22,4 +23,7 @@ export type GameCommand =
   | { type: "activate_bomb"; sourceTableId: string; targetTableId: string }
   | { type: "apply_freeze_for_round" }
   | { type: "reset_game" }
-  | { type: "simulate_answers" };
+  | { type: "simulate_answers" }
+  | { type: "enable_power_ups" }
+  | { type: "adjust_score"; tableId: string; delta: number }
+  | { type: "restore_power_up"; tableId: string; powerUpType: PowerUpType };

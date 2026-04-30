@@ -424,7 +424,7 @@ export function ScreenView() {
             <div className="min-h-0 flex-1">
               <TableGrid
                 state={state}
-                showPowerUps
+                showPowerUps={state.powerUpsEnabled}
                 compact
                 compactColumns={compactColumns}
                 compactRows={compactRows}

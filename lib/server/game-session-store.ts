@@ -28,13 +28,18 @@ const createSeedState = (gameId: string): GameState => ({
   updatedAt: new Date().toISOString(),
 });
 
-const normalizeStateFromRow = (row: SessionRow): GameState => ({
-  ...(row.state as GameState),
-  gameId: row.id,
-  revision: row.revision,
-  lastEvent: row.last_event ?? row.state.lastEvent ?? null,
-  updatedAt: row.updated_at ?? row.state.updatedAt,
-});
+const normalizeStateFromRow = (row: SessionRow): GameState => {
+  const base = row.state as GameState;
+  return {
+    ...base,
+    gameId: row.id,
+    revision: row.revision,
+    lastEvent: row.last_event ?? base.lastEvent ?? null,
+    updatedAt: row.updated_at ?? base.updatedAt,
+    powerUpsEnabled: base.powerUpsEnabled ?? false,
+    scoreAdjustments: base.scoreAdjustments ?? [],
+  };
+};
 
 const toSessionRow = (state: GameState) => ({
   id: state.gameId,

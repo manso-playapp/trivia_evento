@@ -28,6 +28,8 @@ export const createInitialGameState = (): GameState => ({
   tiebreakerTableIds: [],
   submittedAnswers: [],
   scoreEvents: [],
+  powerUpsEnabled: false,
+  scoreAdjustments: [],
   updatedAt: INITIAL_STATE_TIMESTAMP,
   lastEvent: null,
 });

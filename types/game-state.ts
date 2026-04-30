@@ -1,6 +1,7 @@
 import type { Question } from "@/types/question";
 import type { GameEvent } from "@/types/game-event";
 import type { RoundStatus } from "@/types/round-status";
+import type { ScoreAdjustment } from "@/types/score-adjustment";
 import type { ScoreEvent } from "@/types/score-event";
 import type { SoundSettings } from "@/types/sound-settings";
 import type { SubmittedAnswer } from "@/types/submitted-answer";
@@ -28,6 +29,8 @@ export type GameState = {
   tiebreakerTableIds?: string[];
   submittedAnswers: SubmittedAnswer[];
   scoreEvents: ScoreEvent[];
+  powerUpsEnabled: boolean;
+  scoreAdjustments: ScoreAdjustment[];
   updatedAt: string;
   lastEvent: GameEvent | null;
 };

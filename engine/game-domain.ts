@@ -17,6 +17,8 @@ import type {
   AnswerOptionId,
   GameState,
   PowerUp,
+  PowerUpType,
+  ScoreAdjustment,
   ScoreEvent,
   SoundSettings,
   Table,
@@ -623,3 +625,76 @@ export const simulateAnswers = (state: GameState): GameState => {
 };
 
 export const resetGame = (): GameState => createInitialGameState();
+
+export const enablePowerUps = (state: GameState): GameState => {
+  if (state.powerUpsEnabled) {
+    return state;
+  }
+
+  return stampState({ ...state, powerUpsEnabled: true });
+};
+
+export const adjustScore = (
+  state: GameState,
+  tableId: string,
+  delta: number
+): GameState => {
+  const table = state.tables.find((t) => t.id === tableId);
+
+  if (!table || !Number.isFinite(delta) || delta === 0) {
+    return state;
+  }
+
+  const adjustment: ScoreAdjustment = {
+    id: `adj-${Date.now()}-${tableId}`,
+    tableId,
+    tableName: table.name,
+    reason: { kind: "manual_points", delta },
+    appliedAt: new Date().toISOString(),
+    roundNumber: getCurrentRoundNumber(state) || null,
+  };
+
+  return stampState({
+    ...state,
+    tables: updateTable(state.tables, tableId, (t) => ({
+      ...t,
+      score: Math.max(0, t.score + delta),
+    })),
+    scoreAdjustments: [...state.scoreAdjustments, adjustment],
+  });
+};
+
+export const restorePowerUp = (
+  state: GameState,
+  tableId: string,
+  powerUpType: PowerUpType
+): GameState => {
+  const table = state.tables.find((t) => t.id === tableId);
+  const powerUp = table?.powerUps.find((p) => p.type === powerUpType);
+
+  if (!table || !powerUp || powerUp.status !== "spent") {
+    return state;
+  }
+
+  const adjustment: ScoreAdjustment = {
+    id: `adj-${Date.now()}-${tableId}-${powerUpType}`,
+    tableId,
+    tableName: table.name,
+    reason: { kind: "power_up_restored", powerUpType },
+    appliedAt: new Date().toISOString(),
+    roundNumber: getCurrentRoundNumber(state) || null,
+  };
+
+  return stampState({
+    ...state,
+    tables: updateTable(state.tables, tableId, (t) => ({
+      ...t,
+      powerUps: t.powerUps.map((p): PowerUp =>
+        p.type === powerUpType
+          ? { ...p, status: "available", armedForRound: null, targetTableId: null, usedAtRound: null }
+          : p
+      ),
+    })),
+    scoreAdjustments: [...state.scoreAdjustments, adjustment],
+  });
+};

@@ -309,3 +309,31 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - Se agrego tabla `submitted_answers` en Supabase con clave primaria
 - El endpoint `/api/game/command` para `submit_answer` ahora hace un upsert
 ```
+
+
+<!-- context-entry -->
+
+## Snapshot 2026-04-30T13:02:50.783Z
+
+- release: 0.7.0
+- changed_files: 23
+- head_commit: 35060cd chore: usar clases Tailwind canónicas en operator-controls y screen-view
+
+```md
+# Handoff Context
+
+- generated_at: 2026-04-30T13:02:50.783Z
+- release_version: 0.7.0
+- release_date: 2026-04-29
+- source_changelog: docs/CHANGELOG.md
+- source_context: docs/PROJECT_CONTEXT.md
+
+## Compressed Context
+
+Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El estado del juego esta modelado como snapshot unico con `revision` y `lastEvent`. Hoy puede correr en modo mock local o en modo Supabase con writes por backend (`server`). Las respuestas de las mesas viven en una tabla separada `submitted_answers` (PK compuesto `game_id, table_id, round_number`) para evitar conflictos de revision entre mesas concurrentes. El snapshot de `game_sessions` sigue siendo la fuente de verdad del flujo del juego.
+
+## Latest Functional Changes
+
+- Se agrego tabla `submitted_answers` en Supabase con clave primaria
+- El endpoint `/api/game/command` para `submit_answer` ahora hace un upsert
+```

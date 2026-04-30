@@ -18,6 +18,7 @@ export type {
 } from "@/types/power-up";
 export type { Question } from "@/types/question";
 export type { RoundStatus } from "@/types/round-status";
+export type { ScoreAdjustment, ScoreAdjustmentReason } from "@/types/score-adjustment";
 export type { ScoreEvent, ScoreReason } from "@/types/score-event";
 export type { SoundSettings } from "@/types/sound-settings";
 export type { SubmittedAnswer } from "@/types/submitted-answer";

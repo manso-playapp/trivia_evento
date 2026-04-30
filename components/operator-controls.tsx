@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, FlaskConical, Music2, Volume2 } from "lucide-react";
+import { ChevronRight, FlaskConical, Music2, Sparkles, Volume2, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { normalizeSoundSettings } from "@/data/default-sound-settings";
 import { MAIN_ROUND_COUNT, needsTiebreaker } from "@/engine/game-selectors";
-import type { GameState, SoundSettings } from "@/types";
+import type { GameState, PowerUpType, SoundSettings } from "@/types";
 
 type OperatorControlsProps = {
   state: GameState;
@@ -22,8 +22,9 @@ type OperatorControlsProps = {
   onSetSoundSettings: (settings: Partial<SoundSettings>) => void;
   onSimulateAnswers: () => void;
   onResetGame: () => void;
-  onActivateX2: (tableId: string) => void;
-  onScheduleBomb: (sourceTableId: string, targetTableId: string) => void;
+  onEnablePowerUps: () => void;
+  onAdjustScore: (tableId: string, delta: number) => void;
+  onRestorePowerUp: (tableId: string, powerUpType: PowerUpType) => void;
 };
 
 export function OperatorControls({
@@ -40,18 +41,15 @@ export function OperatorControls({
   onSetSoundSettings,
   onSimulateAnswers,
   onResetGame,
-  onActivateX2,
-  onScheduleBomb,
+  onEnablePowerUps,
+  onAdjustScore,
+  onRestorePowerUp,
 }: OperatorControlsProps) {
-  const [selectedX2TableId, setSelectedX2TableId] = useState(
-    state.tables[0]?.id ?? ""
-  );
-  const [selectedBombSourceId, setSelectedBombSourceId] = useState(
-    state.tables[0]?.id ?? ""
-  );
-  const [selectedBombTargetId, setSelectedBombTargetId] = useState(
-    state.tables[1]?.id ?? state.tables[0]?.id ?? ""
-  );
+  const [enablePowerUpsConfirm, setEnablePowerUpsConfirm] = useState(false);
+  const [adjustTableId, setAdjustTableId] = useState(state.tables[0]?.id ?? "");
+  const [adjustDelta, setAdjustDelta] = useState("");
+  const [restoreTableId, setRestoreTableId] = useState(state.tables[0]?.id ?? "");
+  const [restorePowerUpType, setRestorePowerUpType] = useState<PowerUpType>("x2");
   const [roundDurationDraft, setRoundDurationDraft] = useState(
     String(state.roundDurationSeconds)
   );
@@ -61,7 +59,6 @@ export function OperatorControls({
   const [screenHeightDraft, setScreenHeightDraft] = useState(
     String(state.publicScreenHeightPx ?? 768)
   );
-  const powerUpControlsDisabled = disabled || state.roundStatus !== "score_updated";
   const roundDurationControlsDisabled =
     disabled || state.roundStatus === "round_active";
   const parsedRoundDurationDraft = Number(roundDurationDraft);
@@ -424,76 +421,162 @@ export function OperatorControls({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="broadcast-panel-soft p-4">
-          <p className="broadcast-label mb-3">
-            Activar X2
-          </p>
-          <select
-            value={selectedX2TableId}
-            onChange={(event) => setSelectedX2TableId(event.target.value)}
-            className="app-input mb-3"
-            disabled={powerUpControlsDisabled}
-          >
-            {state.tables.map((table) => (
-              <option key={table.id} value={table.id}>
-                {table.name}
-              </option>
-            ))}
-          </select>
-          <Button
-            onClick={() => onActivateX2(selectedX2TableId)}
-            variant="outline"
-            className="h-11 w-full justify-center"
-            disabled={powerUpControlsDisabled}
-          >
-            Activar X2 en mesa
-          </Button>
-        </div>
-
-        <div className="broadcast-panel-soft p-4">
-          <p className="broadcast-label mb-3">
-            Programar bomba
-          </p>
-          <div className="grid gap-3">
-            <select
-              value={selectedBombSourceId}
-              onChange={(event) => setSelectedBombSourceId(event.target.value)}
-              className="app-input"
-              disabled={powerUpControlsDisabled}
-            >
-              {state.tables.map((table) => (
-                <option key={table.id} value={table.id}>
-                  Fuente: {table.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedBombTargetId}
-              onChange={(event) => setSelectedBombTargetId(event.target.value)}
-              className="app-input"
-              disabled={powerUpControlsDisabled}
-            >
-              {state.tables.map((table) => (
-                <option key={table.id} value={table.id}>
-                  Destino: {table.name}
-                </option>
-              ))}
-            </select>
-            <Button
-              onClick={() => onScheduleBomb(selectedBombSourceId, selectedBombTargetId)}
-              variant="outline"
-              className="h-11 w-full justify-center"
-              disabled={
-                powerUpControlsDisabled ||
-                selectedBombSourceId === selectedBombTargetId
-              }
-            >
-              Programar bomba
-            </Button>
+      {/* ── Activar comodines ── */}
+      <div className="broadcast-panel-soft p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="broadcast-label mb-1 flex items-center gap-2">
+              <Sparkles className="size-3.5 text-accent" />
+              Comodines
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {state.powerUpsEnabled
+                ? "Comodines activos. Las mesas pueden usarlos desde su dispositivo."
+                : "Comodines desactivados. Activalos cuando quieras introducir el giro."}
+            </p>
           </div>
         </div>
+        {!state.powerUpsEnabled ? (
+          enablePowerUpsConfirm ? (
+            <div className="flex gap-2">
+              <Button
+                onClick={() => { onEnablePowerUps(); setEnablePowerUpsConfirm(false); }}
+                className="h-11 flex-1 justify-center"
+                disabled={disabled}
+              >
+                Confirmar activacion
+              </Button>
+              <Button
+                onClick={() => setEnablePowerUpsConfirm(false)}
+                variant="outline"
+                className="h-11 justify-center"
+              >
+                Cancelar
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => setEnablePowerUpsConfirm(true)}
+              variant="outline"
+              className="h-11 w-full justify-center"
+              disabled={disabled}
+            >
+              Activar comodines
+            </Button>
+          )
+        ) : (
+          <p className="text-sm font-semibold text-success">Comodines activos</p>
+        )}
       </div>
+
+      {/* ── Correcciones del operador ── */}
+      <details className="broadcast-panel-soft p-4">
+        <summary className="flex cursor-pointer items-center gap-2 broadcast-label">
+          <Wrench className="size-3.5 text-warning" />
+          Correcciones
+        </summary>
+        <div className="mt-4 space-y-4">
+          {/* Ajuste manual de puntos */}
+          <div>
+            <p className="mb-2 text-sm font-semibold text-foreground">Ajuste de puntos</p>
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={adjustTableId}
+                onChange={(e) => setAdjustTableId(e.target.value)}
+                className="app-input flex-1"
+                disabled={disabled}
+              >
+                {state.tables.filter((t) => t.active).map((table) => (
+                  <option key={table.id} value={table.id}>{table.name}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={adjustDelta}
+                onChange={(e) => setAdjustDelta(e.target.value)}
+                placeholder="+10 / -5"
+                className="app-input w-28 text-center"
+                disabled={disabled}
+              />
+              <Button
+                variant="outline"
+                className="h-11 justify-center"
+                disabled={disabled || adjustDelta === "" || Number(adjustDelta) === 0 || !Number.isFinite(Number(adjustDelta))}
+                onClick={() => { onAdjustScore(adjustTableId, Number(adjustDelta)); setAdjustDelta(""); }}
+              >
+                Aplicar
+              </Button>
+            </div>
+          </div>
+
+          {/* Restaurar comodin */}
+          {state.powerUpsEnabled ? (
+            <div>
+              <p className="mb-2 text-sm font-semibold text-foreground">Restaurar comodin</p>
+              <div className="flex flex-wrap gap-2">
+                <select
+                  value={restoreTableId}
+                  onChange={(e) => setRestoreTableId(e.target.value)}
+                  className="app-input flex-1"
+                  disabled={disabled}
+                >
+                  {state.tables.filter((t) => t.active).map((table) => (
+                    <option key={table.id} value={table.id}>{table.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={restorePowerUpType}
+                  onChange={(e) => setRestorePowerUpType(e.target.value as PowerUpType)}
+                  className="app-input w-28"
+                  disabled={disabled}
+                >
+                  <option value="x2">X2</option>
+                  <option value="bomb">Bomba</option>
+                </select>
+                <Button
+                  variant="outline"
+                  className="h-11 justify-center"
+                  disabled={disabled || (() => {
+                    const table = state.tables.find((t) => t.id === restoreTableId);
+                    return table?.powerUps.find((p) => p.type === restorePowerUpType)?.status !== "spent";
+                  })()}
+                  onClick={() => onRestorePowerUp(restoreTableId, restorePowerUpType)}
+                >
+                  Restaurar
+                </Button>
+              </div>
+              {(() => {
+                const table = state.tables.find((t) => t.id === restoreTableId);
+                const pu = table?.powerUps.find((p) => p.type === restorePowerUpType);
+                if (!pu || pu.status === "spent") return null;
+                return (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Este comodin esta en estado <span className="font-semibold">{pu.status}</span> — solo se pueden restaurar los gastados.
+                  </p>
+                );
+              })()}
+            </div>
+          ) : null}
+
+          {/* Historial de correcciones */}
+          {(state.scoreAdjustments ?? []).length > 0 ? (
+            <div>
+              <p className="mb-2 text-sm font-semibold text-foreground">Historial</p>
+              <ul className="space-y-1.5">
+                {[...(state.scoreAdjustments ?? [])].reverse().map((adj) => (
+                  <li key={adj.id} className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">{adj.tableName}</span>
+                    {adj.reason.kind === "manual_points"
+                      ? ` — ${adj.reason.delta > 0 ? "+" : ""}${adj.reason.delta} pts`
+                      : ` — comodin ${adj.reason.powerUpType.toUpperCase()} restaurado`}
+                    {adj.roundNumber ? ` (ronda ${adj.roundNumber})` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </details>
 
       {onSignOut ? (
         <Button

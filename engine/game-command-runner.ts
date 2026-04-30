@@ -1,10 +1,13 @@
 import {
   activateBomb,
   activateX2,
+  adjustScore,
   applyFreezeForRound,
   applyScores,
+  enablePowerUps,
   lockRound,
   resetGame,
+  restorePowerUp,
   revealCorrectAnswer,
   revealQuestion,
   setActiveTableCount,
@@ -303,6 +306,45 @@ export const executeGameCommand = (
         payload: {
           mode: "bulk-simulated",
           roundNumber: getCurrentRoundNumber(state),
+        },
+      };
+    }
+
+    case "enable_power_ups": {
+      const nextState = enablePowerUps(state);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "game_reset",
+        payload: { powerUpsEnabled: true },
+      };
+    }
+
+    case "adjust_score": {
+      const nextState = adjustScore(state, command.tableId, command.delta);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "scores_applied",
+        payload: {
+          tableId: command.tableId,
+          delta: command.delta,
+        },
+      };
+    }
+
+    case "restore_power_up": {
+      const nextState = restorePowerUp(state, command.tableId, command.powerUpType);
+
+      return {
+        nextState,
+        actorRole: "operator",
+        eventType: "scores_applied",
+        payload: {
+          tableId: command.tableId,
+          powerUpType: command.powerUpType,
         },
       };
     }

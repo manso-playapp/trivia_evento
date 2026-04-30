@@ -1,4 +1,7 @@
-import type { GameCommand } from "@/types";
+import type { GameCommand, PowerUpType } from "@/types";
+
+const isPowerUpType = (value: unknown): value is PowerUpType =>
+  value === "x2" || value === "bomb";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -135,6 +138,32 @@ export const parseGameCommand = (input: unknown): GameCommand | null => {
           type: "activate_bomb",
           sourceTableId: input.sourceTableId,
           targetTableId: input.targetTableId,
+        };
+      }
+
+      return null;
+
+    case "enable_power_ups":
+      return { type: "enable_power_ups" };
+
+    case "adjust_score":
+      if (
+        typeof input.tableId === "string" &&
+        typeof input.delta === "number" &&
+        Number.isFinite(input.delta) &&
+        input.delta !== 0
+      ) {
+        return { type: "adjust_score", tableId: input.tableId, delta: input.delta };
+      }
+
+      return null;
+
+    case "restore_power_up":
+      if (typeof input.tableId === "string" && isPowerUpType(input.powerUpType)) {
+        return {
+          type: "restore_power_up",
+          tableId: input.tableId,
+          powerUpType: input.powerUpType,
         };
       }
 

@@ -3,10 +3,13 @@
 import {
   activateBomb,
   activateX2,
+  adjustScore,
   applyFreezeForRound,
   applyScores,
+  enablePowerUps,
   lockRound,
   resetGame,
+  restorePowerUp,
   revealCorrectAnswer,
   revealQuestion,
   setActiveTableCount,
@@ -385,6 +388,36 @@ export const mockGameService: GameService = {
         mode: "bulk-simulated",
         roundNumber: getCurrentRoundNumber(readStoredGameState()),
       },
+    });
+  },
+
+  enablePowerUps(actorId = "operator") {
+    commitLocalState({
+      reducer: enablePowerUps,
+      type: "game_reset",
+      actorRole: "operator",
+      actorId,
+      payload: { powerUpsEnabled: true },
+    });
+  },
+
+  adjustScore(tableId, delta, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => adjustScore(state, tableId, delta),
+      type: "scores_applied",
+      actorRole: "operator",
+      actorId,
+      payload: { tableId, delta },
+    });
+  },
+
+  restorePowerUp(tableId, powerUpType, actorId = "operator") {
+    commitLocalState({
+      reducer: (state) => restorePowerUp(state, tableId, powerUpType),
+      type: "scores_applied",
+      actorRole: "operator",
+      actorId,
+      payload: { tableId, powerUpType },
     });
   },
 };

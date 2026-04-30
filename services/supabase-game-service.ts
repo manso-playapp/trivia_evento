@@ -5,10 +5,13 @@ import { createInitialGameState } from "@/data/initial-game-state";
 import {
   activateBomb,
   activateX2,
+  adjustScore,
   applyFreezeForRound,
   applyScores,
+  enablePowerUps,
   lockRound,
   resetGame,
+  restorePowerUp,
   revealCorrectAnswer,
   revealQuestion,
   setActiveTableCount,
@@ -95,12 +98,15 @@ function setCachedState(nextState: GameState) {
 }
 
 function normalizeStateFromRow(row: SessionRow): GameState {
+  const base = row.state as GameState;
   return {
-    ...(row.state as GameState),
+    ...base,
     gameId: row.id,
     revision: row.revision,
-    lastEvent: row.last_event ?? row.state.lastEvent ?? null,
-    updatedAt: row.updated_at ?? row.state.updatedAt,
+    lastEvent: row.last_event ?? base.lastEvent ?? null,
+    updatedAt: row.updated_at ?? base.updatedAt,
+    powerUpsEnabled: base.powerUpsEnabled ?? false,
+    scoreAdjustments: base.scoreAdjustments ?? [],
   };
 }
 
@@ -912,6 +918,66 @@ export const createSupabaseGameService = (): GameService => ({
         mode: "bulk-simulated",
         roundNumber: getCurrentRoundNumber(currentState),
       }),
+    });
+  },
+
+  enablePowerUps(actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "enable_power_ups" },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: enablePowerUps,
+      type: "game_reset",
+      actorRole: "operator",
+      actorId,
+      payload: () => ({ powerUpsEnabled: true }),
+    });
+  },
+
+  adjustScore(tableId, delta, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "adjust_score", tableId, delta },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => adjustScore(state, tableId, delta),
+      type: "scores_applied",
+      actorRole: "operator",
+      actorId,
+      payload: () => ({ tableId, delta }),
+    });
+  },
+
+  restorePowerUp(tableId, powerUpType, actorId = "operator") {
+    if (shouldUseServerWrites) {
+      void commitServerCommand({
+        command: { type: "restore_power_up", tableId, powerUpType },
+        actorId,
+      }).catch((error) => {
+        console.error("Supabase backend write error:", error);
+      });
+      return;
+    }
+
+    void commitRemoteState({
+      reducer: (state) => restorePowerUp(state, tableId, powerUpType),
+      type: "scores_applied",
+      actorRole: "operator",
+      actorId,
+      payload: () => ({ tableId, powerUpType }),
     });
   },
 });

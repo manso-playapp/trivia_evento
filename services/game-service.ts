@@ -3,6 +3,7 @@ import type {
   GameActorRole,
   GameEvent,
   GameState,
+  PowerUpType,
   SoundSettings,
 } from "@/types";
 
@@ -44,6 +45,9 @@ export interface GameService {
   applyFreezeForRound(actorId?: string): void;
   resetGame(actorId?: string): void;
   simulateAnswers(actorId?: string): void;
+  enablePowerUps(actorId?: string): void;
+  adjustScore(tableId: string, delta: number, actorId?: string): void;
+  restorePowerUp(tableId: string, powerUpType: PowerUpType, actorId?: string): void;
 }
 
 export const createGameEvent = ({

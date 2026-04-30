@@ -14,7 +14,7 @@ import {
   shouldUseClientTickPolling,
 } from "@/lib/runtime-config";
 import { gameService } from "@/services/create-game-service";
-import type { AnswerOptionId, GameState, SoundSettings } from "@/types";
+import type { AnswerOptionId, GameState, PowerUpType, SoundSettings } from "@/types";
 
 type GameActions = {
   revealQuestion: () => void;
@@ -34,6 +34,9 @@ type GameActions = {
   applyFreezeForRound: () => void;
   resetGame: () => void;
   simulateAnswers: () => void;
+  enablePowerUps: () => void;
+  adjustScore: (tableId: string, delta: number) => void;
+  restorePowerUp: (tableId: string, powerUpType: PowerUpType) => void;
 };
 
 type GameContextValue = {
@@ -149,6 +152,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     applyFreezeForRound: () => gameService.applyFreezeForRound(),
     resetGame: () => gameService.resetGame(),
     simulateAnswers: () => gameService.simulateAnswers(),
+    enablePowerUps: () => gameService.enablePowerUps(),
+    adjustScore: (tableId, delta) => gameService.adjustScore(tableId, delta),
+    restorePowerUp: (tableId, powerUpType) =>
+      gameService.restorePowerUp(tableId, powerUpType),
   };
 
   return (
