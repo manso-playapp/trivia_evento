@@ -559,11 +559,11 @@ export function OperatorControls({
           ) : null}
 
           {/* Historial de correcciones */}
-          {(state.scoreAdjustments ?? []).length > 0 ? (
+          {state.scoreAdjustments.length > 0 ? (
             <div>
               <p className="mb-2 text-sm font-semibold text-foreground">Historial</p>
               <ul className="space-y-1.5">
-                {[...(state.scoreAdjustments ?? [])].reverse().map((adj) => (
+                {[...state.scoreAdjustments].reverse().map((adj) => (
                   <li key={adj.id} className="text-xs text-muted-foreground">
                     <span className="font-semibold text-foreground">{adj.tableName}</span>
                     {adj.reason.kind === "manual_points"

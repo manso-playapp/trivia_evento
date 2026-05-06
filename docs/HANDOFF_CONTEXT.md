@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-04-30T13:02:50.783Z
+- generated_at: 2026-05-06T22:36:31.943Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -23,40 +23,20 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- D  app/api/meta/context/checkpoint/route.ts
-- M  components/game-provider.tsx
-- M  components/operator-controls.tsx
-- M  components/version-context-panel.tsx
-- M  components/views/operator-view.tsx
-- M  components/views/play-view.tsx
-- M  components/views/screen-view.tsx
-- M  data/initial-game-state.ts
-- M  engine/game-command-runner.ts
-- M  engine/game-domain.ts
-- M  lib/game-command-validator.ts
-- M  lib/game-storage.ts
-- M  lib/server/game-session-store.ts
-- M  scripts/e2e-20-tables.mjs
-- M  services/game-service.ts
-- M  services/mock-game-service.ts
-- M  services/supabase-game-service.ts
-- M  types/game-command.ts
-- M  types/game-state.ts
-- M  types/index.ts
-- A  types/score-adjustment.ts
+- Workspace limpio
 
 ## Recent Commits
 
+- 4d07e92 fix: filtro Realtime submitted_answers por table_id (Hipótesis 2)
+- 5fa2097 fix: una cookie = un table_id, rechazar reauth con id distinto (cierra colisión mesa 2 ↔ mesa 4)
+- e501d4c docs: diagnóstico colisión mesas Trivia Evento
+- 20f59dc refactor: eliminar fallbacks ?? [] redundantes en operator-controls
+- ee0809a feat: comodines self-service + herramientas de corrección del operador
 - 35060cd chore: usar clases Tailwind canónicas en operator-controls y screen-view
 - 06bb39e fix: ronda.mp3 no sonaba durante preguntas activas
 - 0f6103f docs: registrar decisiones y pendientes de sesión 2026-04-29
 - 52366a1 fix: eliminar lag y pérdida de respuestas con 20 mesas concurrentes
 - 4a9886f Release: nueva versión — referencia 050ece8
-- 050ece8 feat: comprehensive update to game components, services, and new features
-- ace0586 chore: update branding logo asset and screen header sizing
-- 5af88e7 feat: polish broadcast UI, mobile timer, branding and screen layout
-- e7974d8 feat: compact broadcast screen 1356x768 and fix qr hydration
-- 03e3308 feat: table roster naming and automatic context checkpoints
 
 ## Handoff Checklist
 

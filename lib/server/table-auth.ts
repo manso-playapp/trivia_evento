@@ -6,7 +6,6 @@ import { getTableAccessCode } from "@/lib/table-access";
 
 export const TABLE_SESSION_COOKIE = "trivia_table_session";
 const TABLE_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-const TABLE_SESSION_SEPARATOR = ",";
 
 const safeEqual = (left: string, right: string) => {
   const leftBuffer = Buffer.from(left);
@@ -41,70 +40,30 @@ export const isValidTableAccessCode = (tableId: string, accessCode: string) => {
   return safeEqual(expectedCode, accessCode);
 };
 
-const parseAuthenticatedTableIds = (cookieValue: string | null) =>
-  (cookieValue ?? "")
-    .split(TABLE_SESSION_SEPARATOR)
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-const serializeAuthenticatedTableIds = (tableIds: string[]) =>
-  Array.from(new Set(tableIds)).sort().join(TABLE_SESSION_SEPARATOR);
-
-export const getAuthenticatedTableIds = (request: NextRequest) =>
-  parseAuthenticatedTableIds(request.cookies.get(TABLE_SESSION_COOKIE)?.value ?? null);
-
+// La cookie almacena exactamente UN table_id. Un dispositivo = una mesa.
 export const getAuthenticatedTableId = (request: NextRequest) =>
-  getAuthenticatedTableIds(request)[0] ?? null;
+  request.cookies.get(TABLE_SESSION_COOKIE)?.value ?? null;
 
 export const hasValidTableSession = (request: NextRequest, tableId: string) => {
-  return getAuthenticatedTableIds(request).some((authenticatedTableId) =>
-    safeEqual(authenticatedTableId, tableId)
-  );
+  const authenticatedTableId = getAuthenticatedTableId(request);
+  if (!authenticatedTableId) return false;
+  return safeEqual(authenticatedTableId, tableId);
 };
 
-export const applyTableSessionCookie = (
-  response: NextResponse,
-  tableId: string,
-  existingTableIds: string[] = []
-) => {
-  response.cookies.set(
-    TABLE_SESSION_COOKIE,
-    serializeAuthenticatedTableIds([...existingTableIds, tableId]),
-    {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: TABLE_SESSION_MAX_AGE_SECONDS,
-    }
-  );
+export const applyTableSessionCookie = (response: NextResponse, tableId: string) => {
+  response.cookies.set(TABLE_SESSION_COOKIE, tableId, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: TABLE_SESSION_MAX_AGE_SECONDS,
+  });
 };
 
-export const removeTableSessionCookie = (
-  response: NextResponse,
-  tableId: string,
-  existingTableIds: string[] = []
-) => {
-  const nextTableIds = existingTableIds.filter(
-    (authenticatedTableId) => !safeEqual(authenticatedTableId, tableId)
-  );
-
-  if (nextTableIds.length === 0) {
-    clearTableSessionCookie(response);
-    return;
-  }
-
-  response.cookies.set(
-    TABLE_SESSION_COOKIE,
-    serializeAuthenticatedTableIds(nextTableIds),
-    {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: TABLE_SESSION_MAX_AGE_SECONDS,
-    }
-  );
+// Con cookie de valor único, "remover la sesión de mesa X" equivale a limpiarla.
+// El caller es responsable de verificar hasValidTableSession antes de llamar.
+export const removeTableSessionCookie = (response: NextResponse) => {
+  clearTableSessionCookie(response);
 };
 
 export const clearTableSessionCookie = (response: NextResponse) => {

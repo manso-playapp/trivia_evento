@@ -3,7 +3,6 @@ import {
   applyTableSessionCookie,
   clearTableSessionCookie,
   getAuthenticatedTableId,
-  getAuthenticatedTableIds,
   hasValidTableSession,
   isValidTableAccessCode,
   removeTableSessionCookie,
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (authenticated && tableId) {
-    applyTableSessionCookie(response, tableId, getAuthenticatedTableIds(request));
+    applyTableSessionCookie(response, tableId);
   }
 
   return response;
@@ -52,11 +51,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Un dispositivo = una mesa durante todo el evento.
+  // Si ya hay sesión activa para otra mesa, rechazar con conflicto explícito.
+  const existingTableId = getAuthenticatedTableId(request);
+  if (existingTableId && existingTableId !== tableId) {
+    return NextResponse.json(
+      {
+        error: `Este dispositivo ya tiene una sesión activa para ${existingTableId}. Cerrá esa sesión antes de autenticarte como otra mesa.`,
+        conflictingTableId: existingTableId,
+      },
+      { status: 409 }
+    );
+  }
+
   const response = NextResponse.json({
     authenticated: true,
     tableId,
   });
-  applyTableSessionCookie(response, tableId, getAuthenticatedTableIds(request));
+  applyTableSessionCookie(response, tableId);
   return response;
 }
 
@@ -65,7 +77,10 @@ export async function DELETE(request: NextRequest) {
   const response = NextResponse.json({ authenticated: false });
 
   if (tableId) {
-    removeTableSessionCookie(response, tableId, getAuthenticatedTableIds(request));
+    // Solo borrar si la sesión activa corresponde a esa mesa.
+    if (hasValidTableSession(request, tableId)) {
+      removeTableSessionCookie(response);
+    }
     return response;
   }
 

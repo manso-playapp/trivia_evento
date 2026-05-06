@@ -34,6 +34,7 @@ import {
   writeStoredGameState,
 } from "@/lib/game-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser-client";
+import { shouldApplyIncomingAnswer } from "@/lib/realtime-table-guard";
 import {
   createGameEvent,
   type GameService,
@@ -76,6 +77,13 @@ let realtimeChannel: RealtimeChannel | null = null;
 let answersRealtimeChannel: RealtimeChannel | null = null;
 let initialized = false;
 let cachedState: GameState = createConfiguredInitialState();
+// Null para el operador (ve todas las mesas); value para clientes de mesa.
+let ownTableId: string | null = null;
+
+function readOwnTableIdFromCookie(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)trivia_table_session=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 function createConfiguredInitialState(): GameState {
   const baseState = createInitialGameState();
@@ -288,21 +296,40 @@ function ensureAnswersRealtimeChannel() {
     return;
   }
 
+  ownTableId = readOwnTableIdFromCookie();
+
+  // El operador no tiene cookie de mesa (ownTableId === null): recibe todos los
+  // eventos del game — es exactamente lo que necesita para su rol (ver decisión de
+  // modelo "un dispositivo = una mesa"). NO es un bug ni un caso olvidado.
+  // Para clientes de mesa, el filtro server-side ya descarta eventos ajenos;
+  // el guard en el callback es cinturón de seguridad (ver shouldApplyIncomingAnswer).
+  const channelSuffix = ownTableId ? `-${ownTableId}` : "";
+  const filter = ownTableId
+    ? `table_id=eq.${ownTableId}`
+    : `game_id=eq.${runtimeConfig.supabaseGameId}`;
+
   const supabase = getSupabaseBrowserClient();
   answersRealtimeChannel = supabase
-    .channel(`submitted-answers-${runtimeConfig.supabaseGameId}`)
+    .channel(`submitted-answers-${runtimeConfig.supabaseGameId}${channelSuffix}`)
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "submitted_answers",
-        filter: `game_id=eq.${runtimeConfig.supabaseGameId}`,
+        filter,
       },
       (payload) => {
         const row = payload.new as SubmittedAnswerRow | undefined;
 
         if (!row?.table_id) {
+          return;
+        }
+
+        if (!shouldApplyIncomingAnswer(row.table_id, ownTableId)) {
+          console.warn(
+            `[Realtime] guard: evento de mesa "${row.table_id}" descartado (propia: "${ownTableId}"). El filtro server-side falló.`
+          );
           return;
         }
 
