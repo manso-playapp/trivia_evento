@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-05-06T22:10:37.306Z
+- generated_at: 2026-05-06T22:36:31.943Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -23,16 +23,12 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- A  __mocks__/server-only.ts
-- M  app/api/table/session/route.ts
-- A  lib/server/__tests__/table-auth.test.ts
-- M  lib/server/table-auth.ts
-- M  package-lock.json
-- M  package.json
-- A  vitest.config.ts
+- Workspace limpio
 
 ## Recent Commits
 
+- 4d07e92 fix: filtro Realtime submitted_answers por table_id (Hipótesis 2)
+- 5fa2097 fix: una cookie = un table_id, rechazar reauth con id distinto (cierra colisión mesa 2 ↔ mesa 4)
 - e501d4c docs: diagnóstico colisión mesas Trivia Evento
 - 20f59dc refactor: eliminar fallbacks ?? [] redundantes en operator-controls
 - ee0809a feat: comodines self-service + herramientas de corrección del operador
@@ -41,8 +37,6 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - 0f6103f docs: registrar decisiones y pendientes de sesión 2026-04-29
 - 52366a1 fix: eliminar lag y pérdida de respuestas con 20 mesas concurrentes
 - 4a9886f Release: nueva versión — referencia 050ece8
-- 050ece8 feat: comprehensive update to game components, services, and new features
-- ace0586 chore: update branding logo asset and screen header sizing
 
 ## Handoff Checklist
 
