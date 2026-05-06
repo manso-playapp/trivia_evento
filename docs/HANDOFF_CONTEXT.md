@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-05-06T07:23:35.213Z
+- generated_at: 2026-05-06T22:10:37.306Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -23,10 +23,17 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- A  docs/diagnostico-trivia-evento-colision.md
+- A  __mocks__/server-only.ts
+- M  app/api/table/session/route.ts
+- A  lib/server/__tests__/table-auth.test.ts
+- M  lib/server/table-auth.ts
+- M  package-lock.json
+- M  package.json
+- A  vitest.config.ts
 
 ## Recent Commits
 
+- e501d4c docs: diagnóstico colisión mesas Trivia Evento
 - 20f59dc refactor: eliminar fallbacks ?? [] redundantes en operator-controls
 - ee0809a feat: comodines self-service + herramientas de corrección del operador
 - 35060cd chore: usar clases Tailwind canónicas en operator-controls y screen-view
@@ -36,7 +43,6 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - 4a9886f Release: nueva versión — referencia 050ece8
 - 050ece8 feat: comprehensive update to game components, services, and new features
 - ace0586 chore: update branding logo asset and screen header sizing
-- 5af88e7 feat: polish broadcast UI, mobile timer, branding and screen layout
 
 ## Handoff Checklist
 
