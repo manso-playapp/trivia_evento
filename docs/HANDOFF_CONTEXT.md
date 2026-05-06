@@ -1,6 +1,6 @@
 # Handoff Context
 
-- generated_at: 2026-05-02T12:42:11.940Z
+- generated_at: 2026-05-06T07:23:35.213Z
 - release_version: 0.7.0
 - release_date: 2026-04-29
 - source_changelog: docs/CHANGELOG.md
@@ -23,10 +23,11 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 
 ## Working Tree Snapshot
 
-- M  components/operator-controls.tsx
+- A  docs/diagnostico-trivia-evento-colision.md
 
 ## Recent Commits
 
+- 20f59dc refactor: eliminar fallbacks ?? [] redundantes en operator-controls
 - ee0809a feat: comodines self-service + herramientas de corrección del operador
 - 35060cd chore: usar clases Tailwind canónicas en operator-controls y screen-view
 - 06bb39e fix: ronda.mp3 no sonaba durante preguntas activas
@@ -36,7 +37,6 @@ Trivia corporativa en vivo con tres vistas: `screen`, `operator` y `play`. El es
 - 050ece8 feat: comprehensive update to game components, services, and new features
 - ace0586 chore: update branding logo asset and screen header sizing
 - 5af88e7 feat: polish broadcast UI, mobile timer, branding and screen layout
-- e7974d8 feat: compact broadcast screen 1356x768 and fix qr hydration
 
 ## Handoff Checklist
 
